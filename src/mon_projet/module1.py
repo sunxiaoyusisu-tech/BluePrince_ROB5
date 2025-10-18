@@ -1,0 +1,1 @@
+""" classes de base (Room, Porte, Objet, Proba) """
