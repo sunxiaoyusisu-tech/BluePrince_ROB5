@@ -1,43 +1,47 @@
 """ classes de base (Room, Porte, Objet, Proba) """
 
-from enum import Enum
+from enum import *
+import numpy as np
 
 class Direction(Enum):
     """Énumération pour les directions des portes"""
-    HAUT = 0
-    BAS = 1
-    DROITE = 2
-    GAUCHE = 3
-
+    UP = 0
+    DOWN = 1
+    RIGHT = 2
+    LEFT = 3
 
 class Porte:
     """
     Classe représentant les portes d'une pièce
     
     Attributs:
-        positions: Liste de 4 entiers [up, down, right, left] 
-                   1 = porte présente, 0 = pas de porte
+        positions: Liste de 4 entiers [up, down, right, left]
+                  1 = porte présente, 0 = pas de porte
         niveaux_verrouillage: Liste des niveaux de verrouillage pour chaque porte
-                              0 = déverrouillée, 1 = verrouillée (nécessite une clé), 2 = double tour (nécessite deux clés)
+                             0 = déverrouillée, 1 = verrouillée, 2 = double tour
     """
     
-    def _init_(self, haut=0, bas=0, droite=0, gauche=0):
+    def _init_(self, up, down, right, left):
         """
         Initialise les portes d'une pièce
         
         Args:
-            haut, bas, droite, gauche: 1 si porte présente, 0 sinon
+            up, down, right, left: 1 si porte présente, 0 sinon
         """
-        self.positions = [haut, bas, droite, gauche]
-        self.niveaux_verrouillage = [0, 0, 0, 0]  # sera défini lors du placement
+        self.positions = [up, down, right, left]  # [up, down, right, left]
+        self.niveaux_verrouillage = [0, 0, 0, 0]  # Sera défini lors du placement
+        self.franchissement = [False, False, False, False]  # Indique si la porte a été franchie
     
-    def porte_existence (self, direction: Direction) -> bool: #renvoie un bool
+
+    def a_porte(self, direction: Direction) -> bool:
         """Vérifie si une porte existe dans la direction donnée"""
         return self.positions[direction.value] == 1
     
-    def nombre_portes(self) -> int: #renvoie un entier
-        """Retourne le nombre total de portes"""
-        return sum(self.positions)
+    def a_ete_franchie(self, direction: Direction) -> bool:
+        """Vérifie si une porte a été franchie (exemple d'utilisation future)"""
+        self.franchissement[direction.value] = True
+        pass
+   
     
     def definir_verrouillage(self, direction: Direction, niveau: int):
         """
@@ -47,10 +51,8 @@ class Porte:
             direction: Direction de la porte
             niveau: 0 (déverrouillée), 1 (verrouillée), 2 (double tour)
         """
-        if self.porte_existence(direction): #s'il y a une porte dans la direction donnée
+        if self.a_porte(direction):
             self.niveaux_verrouillage[direction.value] = niveau
-
-
 
 class Proba:
     """
@@ -61,20 +63,19 @@ class Proba:
         poids: Poids calculé pour le tirage aléatoire
     """
     
-    def _init_(self, rarete: int = 0):
+    def __init__(self, rarete: int, poids: float):
         """
-        Initialise la probabilité
+        Initialise la probabilité d'une pièce
         
         Args:
-            rarete: 0 (commun) à 3 (très rare)
-            Chaque niveau divise la probabilité par 3
+            rarete: Niveau de rareté (0 à 3)
+            poids: Poids pour le tirage aléatoire
         """
         self.rarete = rarete
-        self.poids = self._calculer_poids()
-    
+        self.poids = poids
+
     def _calculer_poids(self) -> float:
-        """
-        Calcule le poids (probabilité) pour le tirage aléatoire
+        """Calcule le poids pour le tirage aléatoire
         Rareté 0: poids = 1.0
         Rareté 1: poids = 0.33
         Rareté 2: poids = 0.11
@@ -83,63 +84,95 @@ class Proba:
         return 1.0 / (3 ** self.rarete)
 
 
+
+class Pouvoir:
+    """
+    Classe représentant un pouvoir spécial d'une pièce
+    
+    Attributs:
+        description: Description du pouvoir
+        effet: Effet du pouvoir (fonction ou valeur)
+    """
+    
+    def __init__(self):
+        """
+        Initialise un pouvoir
+        """
+        
+    def trou(self,nb_pelle):
+        if nb_pelle>1:  # vérifie si y'a une pelle
+            #permet de récupérer les objets du trou
+            pass
+    
+    def magasin(self,argent):
+        if argent>=c:
+            #permet d'acheter un objet de cout c
+            #ajouter objet à l'inventaire
+            pass
+    
+    def plus_de_pas(self):
+        #retire 1 pas de plus dans l'inventaire
+        pass
+
+
 class Room:
     """
-    Classe de base représentant une pièce du manoir
+    Classe représentant une pièce dans le jeu
     
     Attributs:
         nom: Nom de la pièce
-        portes: Objet Porte définissant les portes disponibles
-        probabilite: Objet Proba gérant la rareté
+        portes: Instance de la classe Porte
+        rarete: Niveau de rareté de la pièce (0 à 3)
         objets: Liste des objets présents dans la pièce
-        cout_gemmes: Coût en gemmes pour choisir cette pièce
-        couleur: Couleur de la pièce
-        effet_special: Description de l'effet spécial (optionnel)
-        image_path: Chemin vers l'image de la pièce
     """
     
-    def _init_(self, 
+    def __init__(self, 
                  nom: str,
-                 portes: Porte,
-                 rarete: int = 0,
-                 objets: List[Objet] = None,
+                 portes: Porte, 
+                 rarete: int, 
+                 objets: list = None,
+                 proba_obj: list = None,
                  cout_gemmes: int = 0,
-                 couleur: Couleur = Couleur.BLEU,
-                 effet_special: str = None,
+                 pouvoir: Pouvoir = None, nom_du_pouvoir: str = None,
                  image_path: str = None):
         """
         Initialise une pièce
         
         Args:
             nom: Nom de la pièce
-            portes: Objet Porte avec les portes disponibles
-            rarete: Niveau de rareté (0-3)
-            objets: Liste des objets dans la pièce
-            cout_gemmes: Coût en gemmes
-            couleur: Couleur de la pièce
-            effet_special: Description de l'effet (si applicable)
-            image_path: Chemin vers l'image
+            portes: Instance de la classe Porte
+            rarete: Niveau de rareté (0 à 3)
+            objets: Liste des objets présents dans la pièce
+            proba_obj: Instance de la classe Proba pour les objets
+            cout_gemmes: Coût en gemmes pour choisir cette pièce
+            pouvoir: Instance de la classe Pouvoir (optionnel)
+            image_path: Chemin vers l'image de la pièce (optionnel)
         """
         self.nom = nom
         self.portes = portes
-        self.probabilite = Proba(rarete)
-        self.objets = objets if objets else []
+        self.rarete = Proba(rarete)
+        self.objets = objets if objets is not None else []
+        self.proba_obj = proba_obj if proba_obj is not None else [] #liste de meme taille que objets
         self.cout_gemmes = cout_gemmes
-        self.couleur = couleur
-        self.effet_special = effet_special
+        self.pouvoir = pouvoir.nom_du_pouvoir if pouvoir is not None else []
         self.image_path = image_path
         self.visitee = False
-    
-    def generer_objets(self) -> List[Objet]:
+        #self.image = nom + ".png"  # Nom de l'image associée à la pièce
+
+    def apparait(self) -> bool: #c'est généré objet
         """
-        Génère la liste des objets qui apparaissent effectivement
-        selon leurs probabilités
+        Détermine si un objet apparaît dans la pièce selon sa probabilité
+        
+        Args:
+            objet: Instance de la classe Objet
+            
+        Returns:
+            bool: True si l'objet apparaît, False sinon
         """
-        objets_presents = []
-        for objet in self.objets:
-            if objet.apparait():
-                objets_presents.append(objet)
-        return objets_presents
+        return (np.random.choice(self.objets, np.random.choice([0, 1, 2, 3],1,p=[0.4,0.3,0.2,0.1]), p=self.proba_obj))
+
+
+
     
     def appliquer_effet(self, jeu_state):
         """
