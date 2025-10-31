@@ -76,10 +76,10 @@ class Proba:
 
     def _calculer_poids(self) -> float:
         """Calcule le poids pour le tirage aléatoire
-        Rareté 0: poids = 1.0
-        Rareté 1: poids = 0.33
-        Rareté 2: poids = 0.11
-        Rareté 3: poids = 0.037
+        Rareté 0: poids = 1.0 (CommonPlace)
+        Rareté 1: poids = 0.33 (Standard)
+        Rareté 2: poids = 0.11 (Unusual)
+        Rareté 3: poids = 0.037 (rare)
         """
         return 1.0 / (3 ** self.rarete)
 
