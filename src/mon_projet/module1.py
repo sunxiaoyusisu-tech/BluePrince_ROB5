@@ -2,6 +2,7 @@
 
 from enum import *
 import numpy as np
+from random import random
 
 class Direction(Enum):
     """Énumération pour les directions des portes"""
@@ -53,6 +54,19 @@ class Porte:
         """
         if self.a_porte(direction):
             self.niveaux_verrouillage[direction.value] = niveau
+
+class CouleurPiece(Enum):
+    JAUNE = "jaune"       # magasins
+    VERTE = "verte"       # jardins d’intérieur
+    VIOLETTE = "violette" # chambres (rendre des pas)
+    ORANGE = "orange"     # couloirs (souvent beaucoup de portes)
+    ROUGE = "rouge"       # effets indésirables
+    BLEUE = "bleue"       # communes, variées
+
+class OutilCreusage(Enum):
+    PELLE = auto()             # Shovel
+    PELLE_DETECTEUR = auto()   # Detector Shovel
+    MARTEAU_PIQUEUR = auto()   # Jack Hammer
 
 class Proba:
     """
@@ -170,9 +184,6 @@ class Room:
             bool: True si l'objet apparaît, False sinon
         """
         return (np.random.choice(self.objets, np.random.choice([0, 1, 2, 3],1,p=[0.4,0.3,0.2,0.1]), p=self.proba_obj))
-
-
-
     
     def appliquer_effet(self, jeu_state):
         """
@@ -183,3 +194,43 @@ class Room:
             jeu_state: État du jeu (inventaire, autres pièces, etc.)
         """
         pass
+
+    def generer_objets_lucky(self, mods: ChanceModifiers):
+        """
+        Génère éventuellement des objets bonus dans la pièce
+        selon sa couleur et les ChanceModifiers (Rabbit Foot, etc.)
+        """
+        # Table des objets potentiels par couleur
+        loot_by_color = {
+            CouleurPiece.VERTE:  ["gemme", "banane", "pelle"],
+            CouleurPiece.VIOLETTE: ["pomme", "gateau"],
+            CouleurPiece.JAUNE:  ["piece_or", "cle"],
+            CouleurPiece.BLEUE:  ["pomme", "gemme", "piece_or"],
+            CouleurPiece.ROUGE:  ["gemme"],  # très faible proba
+            CouleurPiece.ORANGE: [],
+        }
+
+        base_chance = {
+            CouleurPiece.VERTE:  0.40,
+            CouleurPiece.VIOLETTE: 0.30,
+            CouleurPiece.JAUNE:  0.20,
+            CouleurPiece.BLEUE:  0.15,
+            CouleurPiece.ROUGE:  0.05,
+            CouleurPiece.ORANGE: 0.00,
+        }
+
+        loot_table = loot_by_color.get(self.couleur, [])
+        p = base_chance.get(self.couleur, 0.1)
+
+        if not loot_table or p <= 0:
+            return  # rien à faire
+
+        # “if you’re lucky” → tirage de base
+        if not self.tirage_avec_chance(p, "object", mods, reroll_if_close=True):
+            return
+
+        # Si réussite : on choisit un objet bonus
+        objet = random.choice(loot_table)
+        self.objets.append(objet)
+        self.proba_obj.append(1.0)  # objet garanti une fois ajouté
+        print(f"Chanceux ! Un objet bonus '{objet}' apparaît dans {self.nom}.")
