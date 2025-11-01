@@ -1,6 +1,6 @@
 """ Logique du jeu (gestion de l'inventaire, déplacements, catalogue de pièces) """
 
-from module1 import Room, Porte, Pouvoir, Direction
+from module1 import Room, Porte, Pouvoir, Direction, CouleurPiece
 
 def creer_piece(type_piece: str) -> Room:
     """
@@ -15,154 +15,138 @@ def creer_piece(type_piece: str) -> Room:
     
     # Dictionnaire de configuration des pièces
     pieces_config = {
+        "The Foundation": {
+            "nom": "The Foundation",
+            "portes": Porte(0, 1, 1, 1),  # Seulement vers le haut
+            "rarete": 3,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/The_Foundation.png"
+        },
+        
         "Entrance Hall": {
             "nom": "Entrance Hall",
-            "portes": Porte(1, 0, 0, 0),  # Seulement vers le haut
-            "rarete": 0,
-            "objets": ["gemme", "gemme"],
-            "proba_obj": [0.5, 0.5],
-            "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/entrance_hall.png"
-        },
-        
-        "Antechamber": {
-            "nom": "Antechamber",
-            "portes": Porte(0, 1, 0, 0),  # Seulement vers le bas
+            "portes": Porte(1, 0, 1, 1),  # Seulement vers le haut
             "rarete": 0,
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/antechamber.png"
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Entrance_Hall.png"
         },
         
-        "Vault": {
-            "nom": "Vault",
-            "portes": Porte(0, 1, 0, 0),  # Une seule porte
-            "rarete": 3,  # Très rare
-            "objets": ["piece_or"] * 40,  # 40 pièces d'or
-            "proba_obj": [1.0/40] * 40,
-            "cout_gemmes": 3,
-            "pouvoir": None,
-            "image_path": "images/vault.png"
+        "Spare Room": {
+            "nom": "Spare Room",
+            "portes": Porte(1, 1, 0, 0),  # Seulement vers le haut
+            "rarete": 0,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Spare_Room.png"
         },
         
-        "Veranda": {
-            "nom": "Veranda",
-            "portes": Porte(1, 1, 0, 0),  # Deux portes
+        "Nook": {
+            "nom": "Nook",
+            "portes": Porte(0, 1, 0, 1),  # Seulement vers le haut
+            "rarete": 0,
+            "objets": ["cle"],
+            "proba_obj": [1.0],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Nook.png"
+        },
+        
+        "Garage": {
+            "nom": "Garage",
+            "portes": Porte(0, 1, 0, 0),  # Seulement vers le haut
             "rarete": 2,
-            "objets": ["gemme", "trou", "objet_permanent"],
-            "proba_obj": [0.6, 0.3, 0.1],  # Haute probabilité gemme
+            "objets": ["cle","cle","cle"],
+            "proba_obj": [1.0,1.0,1.0],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Garage.png"
+        },
+        
+        "Music Room": {
+            "nom": "Music Room",
+            "portes": Porte(0, 1, 0, 1),  # Seulement vers le haut
+            "rarete": 2,
+            "objets": ["cle","cle"],
+            "proba_obj": [1.0,1.0],
             "cout_gemmes": 2,
-            "pouvoir": Pouvoir(),  # Augmente proba pièces vertes
-            "nom_du_pouvoir": "augmente_pieces_vertes",
-            "image_path": "images/veranda.png"
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Music_Room.png"
         },
         
-        "Den": {
-            "nom": "Den",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 1,
-            "objets": ["gemme", "coffre"],
-            "proba_obj": [1.0, 0.3],  # Toujours une gemme, parfois coffre
-            "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/den.png"
-        },
-        
-        "Chapel": {
-            "nom": "Chapel",
-            "portes": Porte(1, 1, 1, 0),
-            "rarete": 1,
-            "objets": ["pas"],  # Redonne des pas
-            "proba_obj": [1.0],
-            "cout_gemmes": 0,
-            "pouvoir": Pouvoir(),
-            "nom_du_pouvoir": "donne_pas",
-            "image_path": "images/chapel.png"
-        },
-        
-        "Bedroom": {
-            "nom": "Bedroom",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 1,
-            "objets": ["sandwich"],  # Nourriture qui redonne 15 pas
-            "proba_obj": [1.0],
-            "cout_gemmes": 0,
-            "pouvoir": Pouvoir(),
-            "nom_du_pouvoir": "donne_pas",
-            "image_path": "images/bedroom.png"
-        },
-        
-        "Lavatory": {
-            "nom": "Lavatory",
-            "portes": Porte(1, 1, 1, 1),  # Beaucoup de portes
+        "Drawing Room": {
+            "nom": "Drawing Room",
+            "portes": Porte(0, 1, 1, 1),  # Seulement vers le haut
             "rarete": 0,
             "objets": [],
             "proba_obj": [],
-            "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/lavatory.png"
-        },
-        
-        "Locker Room": {
-            "nom": "Locker Room",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 1,
-            "objets": ["casier", "casier", "casier"],
-            "proba_obj": [0.33, 0.33, 0.34],
-            "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/locker_room.png"
-        },
-        
-        "Greenhouse": {
-            "nom": "Greenhouse",
-            "portes": Porte(1, 1, 1, 0),
-            "rarete": 2,
-            "objets": ["gemme", "trou"],
-            "proba_obj": [0.7, 0.3],
             "cout_gemmes": 1,
-            "pouvoir": Pouvoir(),
-            "nom_du_pouvoir": "augmente_pieces_vertes",
-            "image_path": "images/greenhouse.png"
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Drawing_Room.png"
         },
         
-        "Shop": {
-            "nom": "Shop",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 1,
-            "objets": [],  # Magasin - échange or contre objets
-            "proba_obj": [],
-            "cout_gemmes": 0,
-            "pouvoir": Pouvoir(),
-            "nom_du_pouvoir": "magasin",
-            "image_path": "images/shop.png"
-        },
-        
-        "Cellar": {
-            "nom": "Cellar",
-            "portes": Porte(1, 1, 1, 0),
-            "rarete": 0,
-            "objets": ["cle", "piece_or"],
-            "proba_obj": [0.6, 0.4],
-            "cout_gemmes": 0,
-            "pouvoir": None,
-            "image_path": "images/cellar.png"
-        },
-        
-        "Furnace": {
-            "nom": "Furnace",
-            "portes": Porte(1, 1, 0, 0),
+        "Study": {
+            "nom": "Study",
+            "portes": Porte(0, 1, 0, 0),  # Seulement vers le haut
             "rarete": 2,
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "pouvoir": Pouvoir(),
-            "nom_du_pouvoir": "augmente_pieces_rouges",  # Effet négatif
-            "image_path": "images/furnace.png"
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Study.png"
         },
+        
+        "Library": {
+            "nom": "Library",
+            "portes": Porte(0, 1, 0, 1),  # Seulement vers le haut
+            "rarete": 2,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Library.png"
+        },
+        
+        "Sauna": {
+            "nom": "Sauna",
+            "portes": Porte(0, 1, 0, 0),  # Seulement vers le haut
+            "rarete": 2,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Sauna.png"
+        },
+        
+        "Coat Check": {
+            "nom": "Coat Check",
+            "portes": Porte(0, 1, 0, 0),  # Seulement vers le haut
+            "rarete": 1,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Coat_Check.png"
+        },
+        
+        "Mail Room": {
+            "nom": "Mail Room",
+            "portes": Porte(0, 1, 0, 0),  # Seulement vers le haut
+            "rarete": 2,
+            "objets": [],
+            "proba_obj": [],
+            "cout_gemmes": 0,
+            "ouleur":CouleurPiece.BLEUE,
+            "image_path": "images/Mail_Room.png"
+        },
+        
     }
     
     # Récupérer la configuration de la pièce
@@ -179,7 +163,6 @@ def creer_piece(type_piece: str) -> Room:
         objets=config["objets"],
         proba_obj=config["proba_obj"],
         cout_gemmes=config["cout_gemmes"],
-        pouvoir=config["pouvoir"],
-        nom_du_pouvoir=config.get("nom_du_pouvoir"),
+        couleur=config["couleur"],
         image_path=config["image_path"]
     )
