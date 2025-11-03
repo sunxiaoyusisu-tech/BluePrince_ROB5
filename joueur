@@ -1,0 +1,23 @@
+import pygame
+
+class Player(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.velocity=50
+        self.image = pygame.image.load('image/joueur.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = 300
+        self.rect.y = 500
+
+    def droite(self):
+        self.rect.x += self.velocity
+    
+    def gauche(self):
+        self.rect.x -= self.velocity
+
+    def haut(self):
+        self.rect.y -= self.velocity
+
+    def bas(self):
+        self.rect.y += self.velocity
