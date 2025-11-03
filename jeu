@@ -1,0 +1,7 @@
+import pygame
+from joueur import*
+
+class Game:
+    def __init__(self):
+        #charger le joueur
+        self.player = Player()
