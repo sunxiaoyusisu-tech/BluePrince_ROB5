@@ -88,3 +88,48 @@ class Banane(ObjetConsommable):
 class Gateau(ObjetConsommable):
     def __init__(self):
         super().__init__("Gâteau", 10) # Redonne 10 pas
+
+class ObjetInteractif(Objet):
+    """
+    Classe de base pour les objets interactifs (non ramassables).
+    """
+    def __init__(self, nom: str):
+        super().__init__(nom)
+        self.est_utilise = False 
+
+    def interagir(self, joueur: 'Joueur'):
+        """
+        Méthode d'interaction, à redéfinir dans les sous-classes.
+        """
+        pass
+
+
+class EndroitACreuser(ObjetInteractif):
+    """
+    Endroit à creuser : peut être utilisé avec une pelle.
+    """
+    def __init__(self, contenu_possibles):
+        super().__init__("Endroit à creuser")
+        self.contenu_possibles = contenu_possibles
+
+    def interagir(self, joueur: 'Joueur'):
+        if self.est_utilise:
+            print("Tu as déjà creusé ici.")
+            return
+        if not joueur.inventaire.possede("Pelle"):
+            print("Tu n'as pas de pelle pour creuser.")
+            return
+
+        self.est_utilise = True
+        import random
+        if random.random() < 0.7:
+            objet = random.choice(self.contenu_possibles)
+            joueur.inventaire.ajouter(objet)
+            print(f"Tu as trouvé {objet.nom} !")
+        else:
+            print("Rien ici...")
+
+# Méthode d’utilisation dans une pièce
+#class Piece:
+    #def __init__(self):
+        #self.objets_interactifs = [EndroitACreuser([Pomme(), Banane()])]
