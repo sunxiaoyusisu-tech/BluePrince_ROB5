@@ -4,11 +4,13 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.velocity=50
+        self.velocity=80
         self.image = pygame.image.load('image/joueur.png')
-        self.rect = self.image.get_rect()
-        self.rect.x = 300
-        self.rect.y = 500
+        self.direction = pygame.image.load('image/joueur_dir.png')
+        self.pion = self.image
+        self.rect = self.pion.get_rect()
+        self.rect.x = 175
+        self.rect.y = 655
 
     def droite(self):
         self.rect.x += self.velocity
