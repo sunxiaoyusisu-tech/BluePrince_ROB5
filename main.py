@@ -47,30 +47,51 @@ while running:
         #Détecter le clavier
         elif event.type == pygame.KEYDOWN:
             #quelle touche est appuyé
-            if event.key == pygame.K_RIGHT and game.player.rect.x + game.player.velocity < 400:
+            if event.key == pygame.K_RIGHT:
                 game.player.pion = pygame.transform.rotate(game.player.direction, -90) #pour indiquer la direction que la joueur choisit
                 screen.blit(game.player.pion,game.player.rect)
                 pygame.display.flip()
+                direction = "droite"
                 
-                game.player.droite()
 
-            elif event.key == pygame.K_LEFT and game.player.rect.x - game.player.velocity > 0:
+            elif event.key == pygame.K_LEFT :
                 game.player.pion = pygame.transform.rotate(game.player.direction, 90) #pour indiquer la direction que la joueur choisit
                 screen.blit(game.player.pion,game.player.rect)
                 pygame.display.flip()
+                direction = "gauche"
 
-                game.player.gauche()
-
-            elif event.key == pygame.K_UP and game.player.rect.y - game.player.velocity > 0:
+            elif event.key == pygame.K_UP :
                 game.player.pion = game.player.direction
                 screen.blit(game.player.pion,game.player.rect)
                 pygame.display.flip()
+                direction = "haut"
 
-                game.player.haut()
-
-            elif event.key == pygame.K_DOWN and game.player.rect.y + game.player.velocity < 720:
+            elif event.key == pygame.K_DOWN :
                 game.player.pion = pygame.transform.rotate(game.player.direction, 180) #pour indiquer la direction que la joueur choisit
                 screen.blit(game.player.pion,game.player.rect)
                 pygame.display.flip()
+                direction = "bas"
 
-                game.player.bas()
+
+            #Faut rajouter une condition de passage de porte et si on doit reletté les salles
+
+            elif event.key == pygame.K_SPACE:
+                if direction == "droite" and game.player.rect.x + game.player.velocity < 400:
+                    game.player.droite()
+                    game.player.pion = game.player.image
+                    screen.blit(game.player.pion,game.player.rect)
+
+                elif direction == "gauche" and game.player.rect.x - game.player.velocity > 0:
+                    game.player.gauche()
+                    game.player.pion = game.player.image
+                    screen.blit(game.player.pion,game.player.rect)
+
+                elif direction == "haut" and game.player.rect.y - game.player.velocity > 0:
+                    game.player.haut()
+                    game.player.pion = game.player.image
+                    screen.blit(game.player.pion,game.player.rect)
+
+                elif direction == "bas"and game.player.rect.y + game.player.velocity < 720:
+                    game.player.bas()
+                    game.player.pion = game.player.image
+                    screen.blit(game.player.pion,game.player.rect)
