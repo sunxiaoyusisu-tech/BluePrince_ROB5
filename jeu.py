@@ -1,11 +1,14 @@
 import pygame
 from joueur import*
+
+from src.mon_projet.module1 import*
 import random
 
 import sys
 sys.path.insert(0, 'src')
 
 from mon_projet.inventaire import * 
+from mon_projet.sous_package.module2 import creer_piece
 
 # Fonction utilitaire de génération du niveau de verrouillage
 def generer_lock_level(target_row: int) -> int:
@@ -28,15 +31,15 @@ def generer_lock_level(target_row: int) -> int:
         else:
             return 0 
 
-class FakeRoom:
-    """ Simule une pièce du catalogue pour la sélection. """
-    def __init__(self, name, cost, color):
-        self.nom = name
-        self.cost = cost
-        self.color = color # Pour l'affichage
-        # Charger une image par défaut ou une image de test
-        self.image = pygame.Surface((80, 80))
-        self.image.fill(color)
+#class FakeRoom:
+#    """ Simule une pièce du catalogue pour la sélection. """
+#    def __init__(self, name, cost, color):
+#        self.nom = name
+#        self.cost = cost
+#        self.color = color # Pour l'affichage
+#        # Charger une image par défaut ou une image de test
+#        self.image = pygame.Surface((80, 80))
+#        self.image.fill(color)
 
 class Game:
     def __init__(self):
@@ -56,6 +59,17 @@ class Game:
         self.current_col = 2
         self.current_row = 8
 
+        # Gestion de la pioche dynamique
+        self.modeles_disponibles = self.tous_les_modeles() 
+        self.pioche_disponible = self.initialiser_pioche()
+
+        self.manoir_grid[8][2] = creer_piece("Entrance Hall")
+
+        # Variables d'état pour les effets de modification de probabilité
+        self.modificateur_chance_veranda = False
+        self.modificateur_tirage_furnace = False
+        self.modificateur_tirage_greenhouse = False
+
         # Initialisation du Font pour l'UI
         pygame.font.init()
         self.font_small = pygame.font.Font(None, 24)
@@ -65,6 +79,12 @@ class Game:
         self.BLUEPRINT_BLUE = (0, 150, 255) # Couleur principale
         self.LIGHT_BLUE = (150, 200, 255)   # Couleur claire pour le texte/cadre
         self.DARK_BLUE = (0, 50, 150)       # Couleur foncée pour le remplissage
+
+        # La pioche contient les noms des pièces disponibles pour le tirage
+        #self.pioche_disponible = self.initialiser_pioche_globale()
+
+        # Gardez une référence à tous les modèles pour pouvoir ajouter de nouvelles pièces facilement
+        #self.modeles_disponibles = self.get_tous_les_modeles()
         
         # État de la Sélection de Pièce (affichage en bas à droite)
         self.is_selecting_room = False 
@@ -72,6 +92,65 @@ class Game:
         self.selected_option_index = 0 # Index de la pièce actuellement sélectionnée
         self.target_row = 0
         self.target_col = 0
+    
+    # Gestion du catalogue et de la pioche
+    
+    def tous_les_modeles(self):
+        """ Retourne le nom des pieces disponibles """
+        return ["The Foundation", "Entrance Hall", "Spare Room", "Nook", "Garage", "Music Room", 
+                "Drawing Room", "Study", "Sauna", "Coat Check", "Mail Room", 
+                "The pool", "Chamber of mirrors", "Veranda", "Furnace", 
+                "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom"]
+    
+    def initialiser_pioche(self):
+        """ Liste initiale des noms de pièces """
+        pioche = self.tous_les_modeles()
+        pioche.remove("Entrance Hall")
+        return pioche
+    
+    def ajouter_pieces_au_catalogue(self, noms_pieces: list):
+        """ Ajoute une ou plusieurs pièces à la pioche disponible (pour l'effet 'The pool'). """
+        self.pioche_disponible.extend(noms_pieces)
+        print(f"Catalogue mis à jour : {noms_pieces} ajoutées.")
+    
+    def tirer_pieces(self, nombre_options: int = 3, r_cible: int = 0) -> list:
+        """ tirer aleatoirement des pieces dans la pioche"""
+        options = []
+        pioche_avec_cout_zero = [nom for nom in self.pioche_disponible if creer_piece(nom).cout_gemmes == 0]
+
+        #au moins une piece de cout zero
+        if not any(creer_piece(nom).cout_gemmes == 0 for nom in self.pioche_disponible) and not pioche_avec_cout_zero:
+            # Gestion d'erreur: le joueur ne peut pas être bloqué
+            print("Erreur critique : Plus de pièces de coût 0 disponibles.")
+            return []
+        # 1. Tirer d'abord la pièce de coût 0 (si nécessaire)
+        if len(options) == 0 and pioche_avec_cout_zero:
+            choix_zero = random.choice(pioche_avec_cout_zero)
+            self.pioche_disponible.remove(choix_zero)
+            options.append(creer_piece(choix_zero))
+        
+        # 2. Remplir le reste des options (en utilisant la rareté/pondération)
+        while len(options) < nombre_options and self.pioche_disponible:
+            
+            # Calculer les poids basés sur la rareté
+            noms = [nom for nom in self.pioche_disponible if nom not in [opt.nom for opt in options]]
+            pieces = [creer_piece(nom) for nom in noms]
+            
+            # Utiliser la méthode _calculer_poids de Proba dans module1.py
+            # (nécessite d'appeler .rarete.calculer_poids())
+            poids = [piece.rarete._calculer_poids() for piece in pieces]
+            total_poids = sum(poids)
+            poids_normalises = [p / total_poids for p in poids]
+            
+            # Tirage pondéré
+            choix_nom = random.choice(noms, p=poids_normalises)
+            choix = creer_piece(choix_nom)
+            
+            # Retrait et ajout à la liste
+            self.pioche_disponible.remove(choix_nom)
+            options.append(choix)
+
+        return options
     
     def draw_manoir_grid(self,screen):
         """
@@ -163,7 +242,6 @@ class Game:
             ("Gemmes", self.inventaire.gemmes),
             ("Clés", self.inventaire.cles),
             ("Dés", self.inventaire.des)
-            #Ajouter pelle / marteau / detecteur de metaux
         ]
 
         y_pos = ui_y + 50
@@ -183,16 +261,35 @@ class Game:
         screen.blit(title_text,(x_pos ,ui_y))
         y_pos += ui_y + 50
 
-        # Dessiner la liste des objets permanents
-        if self.inventaire.objets_permanents:
-            for objet in self.inventaire.objets_permanents:
-                obj_text = self.font_medium.render(f"- {objet.nom}", True, (150, 255, 150)) # Vert clair
-                screen.blit(obj_text, (x_pos + 10, y_pos))
-                y_pos += hauteur_ligne
+        permanents = [
+        ("Pelle", self.inventaire.possede_pelle),
+        ("Marteau", self.inventaire.possede_marteau),
+        ("Kit de crochetage", self.inventaire.possede_kit_crochetage),
+        ("Détecteur de métaux", self.inventaire.possede_detecteur_metaux),
+        ("Patte de lapin", self.inventaire.possede_patte_lapin)
+    ]
 
+        # Dessiner la liste des objets permanents
+        if any(possede for _, possede in permanents): # Vérifie si au moins un est possédé
+            y_draw = ui_y + hauteur_ligne # Commence après le titre
+            
+            for name, possede in permanents:
+            # Choisir la couleur et le statut en fonction du booléen
+                if possede:
+                    color = (150, 255, 150)  # Vert clair pour "Possédé"
+                    status = " [Possédé]"
+                else:
+                    color = (100, 100, 100)  # Gris foncé pour "Non possédé"
+                    status = " [Non possédé]"
+
+                obj_text = self.font_medium.render(f"- {name}{status}", True, color)
+                screen.blit(obj_text, (x_pos + 10, y_draw))
+                y_draw += hauteur_ligne
+    
         else:
+            # Aucun objet permanent possédé
             none_text = self.font_medium.render("- Aucun", True, (100, 100, 100))
-            screen.blit(none_text, (x_pos + 10, y_pos))
+            screen.blit(none_text, (x_pos + 10, ui_y + hauteur_ligne))
 
     def draw_room(self,screen):
         """

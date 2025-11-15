@@ -1,6 +1,135 @@
 """ Logique du jeu (gestion de l'inventaire, déplacements, catalogue de pièces) """
 
-from module1 import Room, Porte, Pouvoir, Direction, CouleurPiece
+from src.mon_projet.module1 import*
+import random
+
+# Classes (enfants) pour gerer les effets speciaux
+
+class RoomEffetEntree(Room):
+    """
+    Piece avec un effet qui se declenche quand le joueur y entre
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.moment_effet = "entree"
+
+    def appliquer_effet(self, game_instance):
+        """Applique l'effet à l'inventaire ou à l'état du jeu."""
+        # Ceci est la méthode abstraite qui sera implémentée dans les classes enfants
+        pass
+
+class RoomEffetSelection(Room):
+    """Pièce avec un effet qui se déclenche lorsque la pièce est choisie (ajoutée au manoir)."""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.moment_effet = "selection_complete"
+
+    def appliquer_effet(self, game_instance):
+        # Ceci est la méthode abstraite qui sera implémentée dans les classes enfants
+        pass
+
+#Pieces Speciales
+class BedroomRoom(RoomEffetEntree):
+    """ Gagne deux pas """
+    def appliquer_effet(self, game_instance):
+        game_instance.inventaire.modifier_pas(2)
+        print(f"Effet {self.nom} : Gagne 2 pas")
+
+class ChapelRoom(RoomEffetEntree):
+    """Perd 1 pièce d'or."""
+    def appliquer_effet(self, game_instance):
+        game_instance.inventaire.modifier_or(-1)
+        print(f"Effet {self.nom} : Perd 1 pièce d'or")
+
+class NookRoom(RoomEffetEntree):
+    """Gagne 1 clé"""
+    def appliquer_effet(self, game_instance):
+        game_instance.inventaire.modifier_cles(1)
+        print(f"Effet {self.nom} : Gagne 1 clé")
+
+class MusicRoom(RoomEffetEntree):
+    """Gagne 2 clés"""
+    def appliquer_effet(self, game_instance):
+        game_instance.inventaire.modifier_cles(2)
+        print(f"Effet {self.nom} : Gagne 2 clés")
+
+class GarageRoom(RoomEffetEntree):
+    """Gagne 3 clés"""
+    def appliquer_effet(self, game_instance):
+        game_instance.inventaire.modifier_cles(3)
+        print(f"Effet {self.nom} : Gagne 3 clés")
+
+class PoolRoom(RoomEffetSelection):
+    """
+    Ajoute des pieces au catalogue quand elle est selectionnee
+    """
+    def appliquer_effet(self, game_instance):
+        # ajoute une piece (sauna, locker room et pump room) au catalogue des pieces
+        pieces_a_ajouter = ["Sauna", "Coat Check"] # a ajouter locker room? pump room?
+        game_instance.ajouter_pieces_au_catalogue(pieces_a_ajouter)
+        print(f"Effet {self.nom} : Ajout de {pieces_a_ajouter} au catalogue !")
+
+class MasterBedroom(RoomEffetEntree):
+    """
+    Gagne +1 pas par piece deja dans le manoir
+    """
+    def appliquer_effet(self, game_instance):
+        count_pieces = sum(1 for row in game_instance.manoir_grid for room in row if room is not None)
+        game_instance.inventaire.modifier_pas(count_pieces)
+        print(f"Effet {self.nom} : Gagne {count_pieces} pas (1 par pièce placée)")
+
+class ChamberOfMirrorsRoom(RoomEffetSelection):
+    """Ajoute une deuxième copie d'une pièce que j'ai déjà au catalogue."""
+    def appliquer_effet(self, game_instance):
+        #choisir une pièce aléatoire déjà disponible et la dupliquer
+        if game_instance.pioche_disponible:
+            piece_a_dupliquer = random.choice(game_instance.pioche_disponible)
+            game_instance.ajouter_pieces_au_catalogue([piece_a_dupliquer])
+            print(f"Effet {self.nom} : Ajout d'une copie de '{piece_a_dupliquer}' au catalogue.")
+        else:
+            print(f"Effet {self.nom} : Le catalogue est vide, aucun ajout possible.")
+
+# Pieces avec effet sur l'aleatoire
+class VerandaRoom(RoomEffetEntree):
+    """ modifie la proba de trouver certains objets"""
+    def appliquer_effet(self, game_instance):
+        # Active le modificateur de chance pour trouver des objets
+        game_instance.modificateur_chance_veranda = True # Variable d'état dans Game
+        print(f"Effet {self.nom} : Active le modificateur de chance de trouver des objets.")
+
+class FurnaceRoom(RoomEffetEntree):
+    """ modifie la proba de tirer des pieces rouges"""
+    def appliquer_effet(self, game_instance):
+        # Active le modificateur de tirage pour les pièces Rouges
+        game_instance.modificateur_tirage_furnace = True # Variable d'état dans Game
+        print(f"Effet {self.nom} : Active le modificateur de tirage pour les pièces Rouges.")
+
+class GreenhouseRoom(RoomEffetEntree):
+    """Modifie la probabilité de tirer des pièces vertes"""
+    def appliquer_effet(self, game_instance):
+        # Active le modificateur de tirage pour les pièces Vertes
+        game_instance.modificateur_tirage_greenhouse = True # Variable d'état dans Game
+        print(f"Effet {self.nom} : Active le modificateur de tirage pour les pièces Vertes.")
+
+class OfficeRoom(RoomEffetEntree):
+    """Disperse de l'or dans d'autres pièces"""
+    def appliquer_effet(self, game_instance):
+        game_instance.disperser_or_dans_manoir(quantite=3) 
+        print(f"Effet {self.nom} : 3 pièces d'ors ont été dispersés dans le manoir.")
+
+#Pieces speciales pour la selection
+
+class StudyRoom(RoomEffetSelection):
+    """Permet de dépenser des gemmes pour reroll pendant le draft"""
+    def appliquer_effet(self, game_instance):
+        game_instance.capacite_reroll_draft_study= True
+        print(f"Effet {self.nom} : Active la capacité de reroll du draft.")
+
+class DrawingRoom(RoomEffetSelection):
+    """Permet de tirer de nouvelles options pendant le draft"""
+    def appliquer_effet(self, game_instance):
+        game_instance.capacite_nouveau_draft_drawing = True
+        print(f"Effet {self.nom} : Active la capacité de tirer de nouvelles options de draft.")
 
 def creer_piece(type_piece: str) -> Room:
     """
@@ -13,6 +142,25 @@ def creer_piece(type_piece: str) -> Room:
         Room: Une instance de Room configurée selon le type
     """
     
+    classes = {
+        "The Pool" : PoolRoom,
+        "Master Bedroom" : MasterBedroom,
+        "Bedroom" : BedroomRoom,
+        "Chapel" : ChapelRoom,
+        "Nook": NookRoom,
+        "Music Room": MusicRoom,
+        "Garage": GarageRoom,
+        "Chamber of mirrors": ChamberOfMirrorsRoom,
+        "Veranda": VerandaRoom,
+        "Furnace": FurnaceRoom,
+        "Greenhouse": GreenhouseRoom,
+        "Office": OfficeRoom,
+        "Study": StudyRoom,
+        "Drawing Room": DrawingRoom,
+    }
+    
+    classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
+
     # Dictionnaire de configuration des pièces
     pieces_config = {
         "The Foundation": {
@@ -241,18 +389,21 @@ def creer_piece(type_piece: str) -> Room:
     }
     
     # Récupérer la configuration de la pièce
-    if type_piece not in pieces_config:
-        raise ValueError(f"Type de pièce '{type_piece}' non reconnu")
-    
     config = pieces_config[type_piece]
+    positions_initiales = config["portes"].positions
+
+    if len(positions_initiales) != 4:
+        raise ValueError(f"Configuration de porte invalide pour {type_piece} (doit avoir 4 positions).")
     
+    portes_instance = Porte(*positions_initiales)
+
     # Créer et retourner l'instance de Room
     return Room(
         nom=config["nom"],
-        portes=config["portes"],
+        portes=portes_instance,
         rarete=config["rarete"], # 0 : CommonPlace ou N\A / 1 : Standard / 2: Unusual / 3 : Rare
-        objets=config["objets"],
-        proba_obj=config["proba_obj"],
+        objets=config.get("objets", []),
+        #proba_obj=config["proba_obj"],
         cout_gemmes=config["cout_gemmes"],
         #couleur=config["couleur"],
         image_path=config["image_path"]
