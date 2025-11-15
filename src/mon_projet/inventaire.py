@@ -1,77 +1,73 @@
-# -*- coding: utf-8 -*-
-from typing import List, Optional
-# On importe les types d'objets, pas les instances
-from .objets import ObjetPermanent, Objet
+"""
+Inventaire du joueur : gestion des ressources et des objets permanents.
+"""
 
 class Inventaire:
-    """
-    Gère l'inventaire du joueur, y compris les ressources
-    [cite_start]consommables et les objets permanents. [cite: 45]
-    """
+    """Objets consommables + Objets permanents"""
     def __init__(self):
-        # [cite_start]Initialisation des ressources selon le document [cite: 47-51]
-        self.pas: int = 70
-        self.pieces_or: int = 0
-        self.gemmes: int = 2
-        self.cles: int = 0
-        self.des: int = 0
-        
-        # [cite_start]Liste pour stocker les objets permanents acquis [cite: 52]
-        self.objets_permanents: List[ObjetPermanent] = []
+        # Objets consommalbes
+        self.pas:int=70
+        self.pieces_or:int=0
+        self.gemmes:int=2
+        self.cles:int=0
+        self.des:int=0
+        # Objets permanents
 
-    def modifier_pas(self, quantite: int):
-        """
-        Ajoute ou retire des pas.
-        """
-        self.pas += quantite
-        if self.pas < 0:
-            self.pas = 0
-        print(f"Pas: {self.pas}")
+    # operation sur pas
+    def ajouter_pas(self,n:int):
+        if n>0:
+            self.pas +=n
 
-    def modifier_gemmes(self, quantite: int):
-        """
-        Ajoute ou retire des gemmes.
-        """
-        self.gemmes += quantite
-        print(f"Gemmes: {self.gemmes}")
-        
-    def modifier_cles(self, quantite: int):
-        """
-        Ajoute ou retire des clés.
-        """
-        self.cles += quantite
-        print(f"Clés: {self.cles}")
+    def utiliser_pas(self,n:int) ->bool:
+    # normalment pour bouger =1, mais pour pieces rouges =n pas
+        if n>0 and self.pas >=n:
+            self.pas -=n
+            return True
+        return False # GAME OVER!
+    
+    # operation sur gold
+    def ajouter_or(self,n:int):
+        if n>0:
+            self.pieces_or +=n
 
-    def modifier_pieces_or(self, quantite: int):
-        """
-        Ajoute ou retire des pièces d'or.
-        """
-        self.pieces_or += quantite
-        print(f"Pièces d'or: {self.pieces_or}")
-        
-    def modifier_des(self, quantite: int):
-        """
-        Ajoute ou retire des dés.
-        """
-        self.des += quantite
-        print(f"Dés: {self.des}")
-
-    def ajouter_objet_permanent(self, objet: ObjetPermanent):
-        """
-        Ajoute un objet permanent à l'inventaire.
-        """
-        if isinstance(objet, ObjetPermanent):
-            self.objets_permanents.append(objet)
-            print(f"Objet '{objet.nom}' ajouté à l'inventaire.")
-        else:
-            print(f"Erreur: '{objet.nom}' n'est pas un objet permanent.")
-
-    def possede_objet(self, nom_objet: str) -> bool:
-        """
-        Vérifie si le joueur possède un objet permanent spécifique
-        par son nom (par ex. "Pelle").
-        """
-        for objet in self.objets_permanents:
-            if objet.nom == nom_objet:
-                return True
+    def depenser_or(self,n:int) -> bool:
+        if n> 0 and self.pieces_or >= n:
+            self.pieces_or -=n
+            return True
         return False
+    
+    # operation sur gemmes
+    def ajouter_gemmes(self,n:int):
+        if n>0:
+            self.gemmes +=n
+
+    def depenser_gemmes(self,n:int) -> bool:
+        if n> 0 and self.gemmes >= n:
+            self.gemmes -=n
+            return True
+        return False
+
+    # operation sur cles
+    def ajouter_cles(self,n:int=1):
+        if n>0:
+            self.cles +=n
+
+    def depenser_cles(self,n:int=1) ->bool:
+    # we can only use one cle one time 
+        if self.cles >=1:
+            self.cles -=n
+            return True
+        return False
+    
+    # operation sur des
+    def ajouter_des(self,n:int=1):
+        if n>0:
+            self.des += n
+
+    def depenser_des(self,n:int=1)-> bool:
+        if self.des>=1:
+            self.des -=n
+            return True
+        return False
+    
+
