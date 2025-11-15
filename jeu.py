@@ -5,7 +5,7 @@ import random
 import sys
 sys.path.insert(0, 'src')
 
-from mon_projet.inventaire import *
+from mon_projet.inventaire import * 
 
 # Fonction utilitaire de génération du niveau de verrouillage
 def generer_lock_level(target_row: int) -> int:
@@ -354,7 +354,7 @@ class Game:
         
         # Vérification du coût en gemmes
         if self.inventaire.gemmes >= chosen_room.cost:
-            self.inventaire.modifier_gemmes(-chosen_room.cost)
+            self.inventaire.depenser_gemmes(chosen_room.cost)
             
             # Ajout de la pièce à l'emplacement cible (défini par check_and_open_door)
             self.manoir_grid[self.target_row][self.target_col] = chosen_room 
@@ -365,7 +365,7 @@ class Game:
             
             # Le joueur avance immédiatement dans la nouvelle pièce
             self.current_row, self.current_col = self.target_row, self.target_col
-            self.inventaire.modifier_pas(-1)
+            self.inventaire.utiliser_pas(1)
             
             print(f"Pièce choisie : {chosen_room.nom} ajoutée au manoir. Déplacement effectué.")
             
