@@ -1,7 +1,6 @@
 import pygame
 from joueur import*
 from jeu import*
-#from module1 import*
 
 pygame.init()
 pygame.font.init()

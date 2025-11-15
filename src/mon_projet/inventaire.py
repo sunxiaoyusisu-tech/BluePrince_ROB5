@@ -34,13 +34,6 @@ class Inventaire:
             self.pas = 0
             return False #plus de pas
         return True
-
-    #def utiliser_pas(self,n:int) ->bool:
-    # normalment pour bouger =1, mais pour pieces rouges =n pas
-    #    if n>0 and self.pas >=n:
-    #        self.pas -=n
-    #        return True
-    #    return False # GAME OVER!
     
     # operation sur gold
     def modifier_or(self,n:int) -> bool : 
@@ -48,47 +41,24 @@ class Inventaire:
         self.pieces_or += n
         return self.pieces_or >= 0
 
-    #def depenser_or(self,n:int) -> bool:
-    #    if n> 0 and self.pieces_or >= n:
-    #        self.pieces_or -=n
-    #        return True
-    #    return False
     
     # operation sur gemmes
     def modifier_gemmes(self,n:int) -> bool :
         self.gemmes +=n
         return self.gemmes >=0
 
-    #def depenser_gemmes(self,n:int) -> bool:
-    #    if n> 0 and self.gemmes >= n:
-    #        self.gemmes -=n
-    #        return True
-    #    return False
 
     # operation sur cles
     def modifier_cles(self,n: int) -> bool:
         """ modifie le nb de cles. Retourne True si le solde final est >= 0 """
         self.cles +=n
         return self.cles >=0
-
-    #def depenser_cles(self,n:int=1) ->bool:
-    # we can only use one cle one time 
-     #   if self.cles >=1:
-      #      self.cles -=n
-       #     return True
-        #return False
     
     # operation sur des
     def modifier_des(self,n:int) -> bool :
         """Modifie les dés. Retourne True si le solde final est >= 0."""
         self.des += n
         return self.des >= 0
-
-    #def depenser_des(self,n:int=1)-> bool:
-    #    if self.des>=1:
-    #        self.des -=n
-    #        return True
-    #    return False
 
     def possede_objet(self,nom_objet = str) -> bool :
         "verifie si le joueur possede un objet permanent precis"
