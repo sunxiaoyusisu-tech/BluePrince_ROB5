@@ -1,17 +1,23 @@
-#Tuto bien : Graven développement, créer un jeu en python
-
 import pygame
 from joueur import*
 from jeu import*
 #from module1 import*
 
 pygame.init()
+pygame.font.init()
 
 pygame.display.set_caption("Blue Prince")
-screen = pygame.display.set_mode((1080,720))
+
+#screen = pygame.display.set_mode((1080,720))
+infoObject = pygame.display.Info()
+SCREEN_WIDTH = infoObject.current_w
+SCREEN_HEIGHT = infoObject.current_h
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+
+direction = "haut" # Position par défaut au début du jeu
 
 #charger l'arrière plan
-background = pygame.image.load('image/Fond.png')
+background= (30, 30, 100)
 
 #charger l'entrée
 #entrance_room = Room
@@ -23,10 +29,20 @@ game = Game()
 running = True
 while running:
     #Appliquer l'arrière plan
-    screen.blit(background,(0,0))
+    screen.fill(background)
 
     #appliquer la pièce d'entrée
-    screen.blit(entrance,(160,640))
+    #screen.blit(entrance,(160,640))
+
+    # Appliquer la grille du manoir (Zone Gauche)
+    game.draw_manoir_grid(screen)
+
+    #Dessiner l'interface utilisateur
+    game.draw_ui(screen)
+
+    # Appliquer la sélection de pièce (Zone Bas-Droite, si active)
+    if game.is_selecting_room:
+        game.draw_room_selection(screen)
 
     #Appliquer l'image du joueur
     screen.blit(game.player.pion,game.player.rect)
@@ -44,54 +60,48 @@ while running:
             running = False
             pygame.quit()
             print("fermeture du jeu")
-        #Détecter le clavier
+
         elif event.type == pygame.KEYDOWN:
-            #quelle touche est appuyé
-            if event.key == pygame.K_RIGHT:
-                game.player.pion = pygame.transform.rotate(game.player.direction, -90) #pour indiquer la direction que la joueur choisit
-                screen.blit(game.player.pion,game.player.rect)
-                pygame.display.flip()
-                direction = "droite"
+
+            # quitter avec escape
+            if event.key == pygame.K_ESCAPE:
+                running = False
+                pygame.quit()
+                print("Fermeture du jeu par ESC")
+
+            # CONTRÔLES D'INTERFACE (Sélection de Pièce)
+            if game.is_selecting_room:
+                # Flèches UP/DOWN pour naviguer, RETURN (Entrée) pour confirmer
+                if event.key in [pygame.K_UP, pygame.K_DOWN]:
+                    game.handle_selection_movement(event.key)
+                elif event.key == pygame.K_RETURN: 
+                    game.confirm_room_selection()
+                    
+            # CONTRÔLES DE JEU (Mouvement et Interaction)
+            else:
+                # W/A/S/D pour sélectionner la direction de la porte/du mouvement
+                if event.key == pygame.K_d:
+                    direction = "droite"
+                    game.player.pion = pygame.transform.rotate(game.player.direction, -90)
+                elif event.key == pygame.K_a:
+                    direction = "gauche"
+                    game.player.pion = pygame.transform.rotate(game.player.direction, 90)
+                elif event.key == pygame.K_w:
+                    direction = "haut"
+                    game.player.pion = game.player.direction
+                elif event.key == pygame.K_s:
+                    direction = "bas"
+                    game.player.pion = pygame.transform.rotate(game.player.direction, 180)
                 
+                # ESPACE pour l'action : tenter d'ouvrir/déverrouiller
+                elif event.key == pygame.K_SPACE:
+                    
+                    # Tenter d'ouvrir/déverrouiller une porte (déclenchera la sélection si réussie)
+                    game.check_and_open_door(direction)
+                    
+                # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
+                elif event.key == pygame.K_RETURN:
+                    # Tenter de se déplacer dans la direction courante
+                    game.try_move_player(direction)
 
-            elif event.key == pygame.K_LEFT :
-                game.player.pion = pygame.transform.rotate(game.player.direction, 90) #pour indiquer la direction que la joueur choisit
-                screen.blit(game.player.pion,game.player.rect)
-                pygame.display.flip()
-                direction = "gauche"
-
-            elif event.key == pygame.K_UP :
-                game.player.pion = game.player.direction
-                screen.blit(game.player.pion,game.player.rect)
-                pygame.display.flip()
-                direction = "haut"
-
-            elif event.key == pygame.K_DOWN :
-                game.player.pion = pygame.transform.rotate(game.player.direction, 180) #pour indiquer la direction que la joueur choisit
-                screen.blit(game.player.pion,game.player.rect)
-                pygame.display.flip()
-                direction = "bas"
-
-
-            #Faut rajouter une condition de passage de porte et si on doit reletté les salles
-
-            elif event.key == pygame.K_SPACE:
-                if direction == "droite" and game.player.rect.x + game.player.velocity < 400:
-                    game.player.droite()
-                    game.player.pion = game.player.image
-                    screen.blit(game.player.pion,game.player.rect)
-
-                elif direction == "gauche" and game.player.rect.x - game.player.velocity > 0:
-                    game.player.gauche()
-                    game.player.pion = game.player.image
-                    screen.blit(game.player.pion,game.player.rect)
-
-                elif direction == "haut" and game.player.rect.y - game.player.velocity > 0:
-                    game.player.haut()
-                    game.player.pion = game.player.image
-                    screen.blit(game.player.pion,game.player.rect)
-
-                elif direction == "bas"and game.player.rect.y + game.player.velocity < 720:
-                    game.player.bas()
-                    game.player.pion = game.player.image
-                    screen.blit(game.player.pion,game.player.rect)
+game.update()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import List, Optional
 # On importe les types d'objets, pas les instances
-from objets import ObjetPermanent, Objet
+from .objets import ObjetPermanent, Objet
 
 class Inventaire:
     """

@@ -22,7 +22,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"Couleur":CouleurPiece.BLEUE,
             "image_path": "images/The_Foundation.png"
         },
         
@@ -33,7 +33,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"Couleur":CouleurPiece.BLEUE,
             "image_path": "images/Entrance_Hall.png"
         },
         
@@ -44,7 +44,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Spare_Room.png"
         },
         
@@ -55,7 +55,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": ["cle"],
             "proba_obj": [1.0],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Nook.png"
         },
         
@@ -66,7 +66,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": ["cle","cle","cle"],
             "proba_obj": [1.0,1.0,1.0],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Garage.png"
         },
         
@@ -77,7 +77,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": ["cle","cle"],
             "proba_obj": [1.0,1.0],
             "cout_gemmes": 2,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Music_Room.png"
         },
         
@@ -88,7 +88,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 1,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Drawing_Room.png"
         },
         
@@ -99,7 +99,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Study.png"
         },
         
@@ -110,7 +110,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Library.png"
         },
         
@@ -121,7 +121,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Sauna.png"
         },
         
@@ -132,7 +132,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Coat_Check.png"
         },
         
@@ -143,7 +143,7 @@ def creer_piece(type_piece: str) -> Room:
             "objets": [],
             "proba_obj": [],
             "cout_gemmes": 0,
-            "ouleur":CouleurPiece.BLEUE,
+            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "images/Mail_Room.png"
         },
         
@@ -163,6 +163,6 @@ def creer_piece(type_piece: str) -> Room:
         objets=config["objets"],
         proba_obj=config["proba_obj"],
         cout_gemmes=config["cout_gemmes"],
-        couleur=config["couleur"],
+        #couleur=config["couleur"],
         image_path=config["image_path"]
     )
