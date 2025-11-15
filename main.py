@@ -42,7 +42,7 @@ while running:
 
     # Appliquer la sélection de pièce (Zone Bas-Droite, si active)
     if game.is_selecting_room:
-        game.draw_room_selection(screen)
+        game.draw_room(screen)
 
     #Appliquer l'image du joueur
     screen.blit(game.player.pion,game.player.rect)

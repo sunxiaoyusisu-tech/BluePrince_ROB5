@@ -58,7 +58,7 @@ class Inventaire:
 
     def ajouter_objet_permanent(self, objet: ObjetPermanent):
         """
-        [cite_start]Ajoute un objet permanent à l'inventaire. [cite: 52]
+        Ajoute un objet permanent à l'inventaire.
         """
         if isinstance(objet, ObjetPermanent):
             self.objets_permanents.append(objet)
@@ -69,7 +69,7 @@ class Inventaire:
     def possede_objet(self, nom_objet: str) -> bool:
         """
         Vérifie si le joueur possède un objet permanent spécifique
-        [cite_start]par son nom (par ex. "Pelle"). [cite: 53]
+        par son nom (par ex. "Pelle").
         """
         for objet in self.objets_permanents:
             if objet.nom == nom_objet:
