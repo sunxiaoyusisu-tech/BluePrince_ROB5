@@ -78,8 +78,8 @@ class Game:
         Dessine la grille du manoir
         """
         title_size = 80 #taille de l'image d'entrée dans main.py
-        pos_depart_x = 100 #grille centré à gauche
-        pos_depart_y = 800 
+        pos_depart_x = 10 #grille centré à gauche
+        pos_depart_y = 730 
 
         # Dessiner le cadre et les lignes du quadrillage (look Blueprint)
         BLUE_LINE = self.BLUEPRINT_BLUE
@@ -141,8 +141,8 @@ class Game:
         #font = pygame.font.Font(None,30)
 
         #Définir une zone pour l'inventaire
-        ui_x = 550
-        ui_y = 100
+        ui_x = 500
+        ui_y = 30
         WIDTH = 240
         HEIGHT = 280
         hauteur_ligne = 40
@@ -196,25 +196,17 @@ class Game:
         """
         Affiche les options de pièces à choisir
         """
-        x = 550
-        y = screen.get_height() - 450
-        WIDTH = screen.get_width() - 560 
+        x = 500
+        y = screen.get_height() - 400
+        WIDTH = 600 
         HEIGHT = 300
         image_size = 100
-
-        # 1. Dessiner le cadre de la Sélection (Fond + Contour)
-        selection_rect = pygame.Rect(x - 10, y- 10, WIDTH, HEIGHT)
-        
-        # Fond légèrement plus foncé
-        pygame.draw.rect(screen, self.DARK_BLUE, selection_rect)
-        # Contour bleu clair pour délimiter
-        pygame.draw.rect(screen, self.BLUEPRINT_BLUE, selection_rect, 2)
 
         title = self.font_medium.render("Room : ", True, (255, 255, 255))
         screen.blit(title, (x, y))
 
         # Calcul de l'espacement pour centrer les trois options
-        TOTAL_CONTENT_WIDTH = (3 * image_size) + (2 * 200) # 3 images + 2 espaces (400px)
+        TOTAL_CONTENT_WIDTH = (3 * image_size) + (2 * 150) # 3 images + 2 espaces (300px)
         # Position X de départ pour centrer l'ensemble des 3 options
         START_OFFSET_X = (WIDTH - TOTAL_CONTENT_WIDTH) // 2
 
@@ -223,7 +215,7 @@ class Game:
 
         for i, room in enumerate(self.current_room_options):
             
-            x_img_pos = x + START_OFFSET_X + i*(image_size+200)
+            x_img_pos = x + START_OFFSET_X + i*(image_size+150)
 
             # Encadrer l'option sélectionnée
             if i == self.selected_option_index:
@@ -242,7 +234,7 @@ class Game:
             
             #y_pos += 200 # Espacement entre les options
 
-    def try_move_player(self, direction):
+    def try_move_player(self, direction, screen):
         """
         Tente de déplacer le joueur vers une pièce déjà découverte.
         (W/A/S/D dans main.py)
@@ -261,8 +253,14 @@ class Game:
 
         r_cible, c_cible = self.current_row + dr, self.current_col + dc
         
+        # Coordonnées d'affichage pour les messages d'erreur
+        x_erreur = 500
+        y_erreur = 500
+        
         # 1. Vérifier les limites de la grille
         if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
+            title = self.font_medium.render("Déplacement impossible : il y a un mur", True, (255, 255, 255)) #affichage message d'erreur
+            screen.blit(title, (x_erreur, y_erreur))                                                         #sur l'interface (pour l'instant ça marche pas)
             print("Déplacement impossible : il y a un mur")
             return
 
