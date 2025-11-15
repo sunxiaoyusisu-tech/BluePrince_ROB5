@@ -7,7 +7,7 @@ pygame.init()
 pygame.font.init()
 
 pygame.display.set_caption("Blue Prince")
-
+pygame.mouse.set_visible(False)
 screen = pygame.display.set_mode((1280,740),pygame.FULLSCREEN)
 
 direction = "haut" # Position par défaut au début du jeu
@@ -99,12 +99,12 @@ while running:
                 # ESPACE pour l'action : tenter d'ouvrir/déverrouiller
                 elif event.key == pygame.K_SPACE:
                     
-                    # Tenter d'ouvrir/déverrouiller une porte (déclenchera la sélection si réussie)
-                    game.check_and_open_door(direction)
+                    # Nouvelle logique : Vérifier si on peut se déplacer OU ouvrir une porte
+                    game.handle_door_action(direction, screen)
                     
                 # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
                 elif event.key == pygame.K_RETURN:
                     # Tenter de se déplacer dans la direction courante
-                    game.try_move_player(direction)
+                    game.try_move_player(direction,screen)
 
 game.update()

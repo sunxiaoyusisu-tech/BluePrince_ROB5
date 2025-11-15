@@ -1,7 +1,6 @@
 import pygame
+import numpy as np
 from joueur import*
-from mon_projet.module1 import Direction, Room
-from mon_projet.module2 import creer_piece
 
 from src.mon_projet.module1 import*
 import random
@@ -10,7 +9,7 @@ import sys
 sys.path.insert(0, 'src')
 
 from mon_projet.inventaire import * 
-from mon_projet.sous_package.module2 import creer_piece
+from mon_projet.sous_package.module2 import *
 
 # Fonction utilitaire de génération du niveau de verrouillage
 def generer_lock_level(target_row: int) -> int:
@@ -33,15 +32,7 @@ def generer_lock_level(target_row: int) -> int:
         else:
             return 0 
 
-#class FakeRoom:
-#    """ Simule une pièce du catalogue pour la sélection. """
-#    def __init__(self, name, cost, color):
-#        self.nom = name
-#        self.cost = cost
-#        self.color = color # Pour l'affichage
-#        # Charger une image par défaut ou une image de test
-#        self.image = pygame.Surface((80, 80))
-#        self.image.fill(color)
+
 DIR_FROM_STR = {
     "haut": Direction.UP,
     "bas": Direction.DOWN,
@@ -79,6 +70,22 @@ class Game:
         # Gestion de la pioche dynamique
         self.modeles_disponibles = self.tous_les_modeles() 
         self.pioche_disponible = self.initialiser_pioche()
+
+        # Pour accelerer le tirage
+        self.piece_metadata_cache = {}
+        for nom_piece in self.modeles_disponibles:
+            metadata = get_piece(nom_piece)
+            if metadata:
+                self.piece_metadata_cache[nom_piece] = metadata
+            else:
+                print(f"Avertissement : Métadonnées manquantes pour {nom_piece}")
+
+        # Dupliquer explicitement certaines pièces pour augmenter le nombre total
+        self.ajouter_pieces_au_catalogue(["Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
+                                         "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room","Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
+                                         "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room","Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
+                                         "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room"])
+
 
         self.manoir_grid[8][2] = creer_piece("Entrance Hall")
 
@@ -136,37 +143,40 @@ class Game:
         options = []
         pioche_avec_cout_zero = [nom for nom in self.pioche_disponible if creer_piece(nom).cout_gemmes == 0]
 
-        #au moins une piece de cout zero
-        if not any(creer_piece(nom).cout_gemmes == 0 for nom in self.pioche_disponible) and not pioche_avec_cout_zero:
-            # Gestion d'erreur: le joueur ne peut pas être bloqué
-            print("Erreur critique : Plus de pièces de coût 0 disponibles.")
+        if not self.pioche_disponible:
+            print("Erreur critique : Pioche vide.")
             return []
+            
         # 1. Tirer d'abord la pièce de coût 0 (si nécessaire)
-        if len(options) == 0 and pioche_avec_cout_zero:
+        if pioche_avec_cout_zero and not any(nom in options for nom in pioche_avec_cout_zero):
             choix_zero = random.choice(pioche_avec_cout_zero)
             self.pioche_disponible.remove(choix_zero)
-            options.append(creer_piece(choix_zero))
+            options.append(choix_zero) # <-- Ajout du NOM
         
         # 2. Remplir le reste des options (en utilisant la rareté/pondération)
         while len(options) < nombre_options and self.pioche_disponible:
             
             # Calculer les poids basés sur la rareté
-            noms = [nom for nom in self.pioche_disponible if nom not in [opt.nom for opt in options]]
-            pieces = [creer_piece(nom) for nom in noms]
+            noms = [nom for nom in self.pioche_disponible if nom not in options]
             
-            # Utiliser la méthode _calculer_poids de Proba dans module1.py
-            # (nécessite d'appeler .rarete.calculer_poids())
-            poids = [piece.rarete._calculer_poids() for piece in pieces]
+            # La nécessité d'instancier ici ralentit, mais est nécessaire pour le poids si on n'utilise pas le cache
+            pieces = [creer_piece(nom) for nom in noms] 
+            
+            poids = [piece.rarete.poids for piece in pieces] # Utilisation directe de .poids
             total_poids = sum(poids)
+            
+            if total_poids == 0:
+                print("Erreur: total des poids = 0")
+                break
+                
             poids_normalises = [p / total_poids for p in poids]
             
             # Tirage pondéré
-            choix_nom = random.choice(noms, p=poids_normalises)
-            choix = creer_piece(choix_nom)
-            
+            choix_nom = np.random.choice(a=noms, size=1, p=poids_normalises)[0] 
+
             # Retrait et ajout à la liste
             self.pioche_disponible.remove(choix_nom)
-            options.append(choix)
+            options.append(choix_nom) # <-- Ajout du NOM
 
         return options
     
@@ -317,7 +327,7 @@ class Game:
         y = screen.get_height() - 400
         WIDTH = 600 
         HEIGHT = 300
-        image_size = 100
+        image_size = 140
 
         title = self.font_medium.render("Room : ", True, (255, 255, 255))
         screen.blit(title, (x, y))
@@ -346,12 +356,12 @@ class Game:
             details_text = self.font_small.render(f"{room.nom}", True, (200, 200, 200))
             screen.blit(details_text, (x_img_pos + image_size + 10, y_pos + 10))
             
-            cost_text = self.font_small.render(f"Coût: {room.cost} Gemmes", True, (200, 200, 200))
+            cost_text = self.font_small.render(f"{room.cout_gemmes} Gemmes", True, (200, 200, 200))
             screen.blit(cost_text, (x_img_pos + image_size + 10, y_pos + 40))
             
             #y_pos += 200 # Espacement entre les options
 
-    def try_move_player(self, direction, screen):
+    def try_move_player(self, direction):
         """
         Tente de déplacer le joueur vers une pièce déjà découverte.
         (W/A/S/D dans main.py)
@@ -375,17 +385,43 @@ class Game:
         y_erreur = 500
         
         # 1. Vérifier les limites de la grille
-        if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
-            title = self.font_medium.render("Déplacement impossible : il y a un mur", True, (255, 255, 255)) #affichage message d'erreur
-            screen.blit(title, (x_erreur, y_erreur))                                                         #sur l'interface (pour l'instant ça marche pas)
-            print("Déplacement impossible : il y a un mur")
-            return
+        if 0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width and self.manoir_grid[r_cible][c_cible] is not None:
+            
+            chosen_room = self.manoir_grid[r_cible][c_cible]
+            
+            # --- APPLICATION DE L'EFFET D'ENTRÉE POUR LA PREMIÈRE FOIS ---
+            # Vérifier si c'est une pièce à effet d'entrée
+            is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
+
+            if is_entry_effect:
+                # Si l'effet est permanent (comme Chapel), on déclenche l'effet sans condition de visite.
+                # Pour les autres, on ne le fait qu'à la première visite.
+                
+                # Solution 1: Déclencher l'effet de la Chapel à chaque fois
+                if chosen_room.nom == "Chapel":
+                    chosen_room.appliquer_effet(self)
+                
+                # Solution 2: Déclencher l'effet pour la première fois pour les autres
+                elif not chosen_room.visitee:
+                    chosen_room.appliquer_effet(self)
+                
+            # Marquer comme visitée (uniquement si l'effet n'est PAS permanent,
+            # mais pour simplifier, on le fait après l'effet pour éviter la boucle infinie de re-visite)
+            if not chosen_room.visitee:
+                chosen_room.visitee = True
+
+        #if 0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width and self.manoir_grid[r_cible][c_cible] is not None:
+            #self.current_row, self.current_col = r_cible, c_cible
+            #self.inventaire.modifier_pas(-1) # Perte d'un pas
+            #print(f"Déplacement vers ({c_cible}, {r_cible}). Pas restants: {self.inventaire.pas}")
+        #else:
+         #   print("Erreur de logique: tentative de déplacement dans une pièce non existante/mur.")
 
         # 2. Vérifier si la pièce existe déjà et si la porte est ouverte (non implémenté)
         if self.manoir_grid[r_cible][c_cible] is not None:
             # Effectuer le déplacement
             self.current_row, self.current_col = r_cible, c_cible
-            self.inventaire.utiliser_pas(1) # Perte d'un pas
+            self.inventaire.modifier_pas(1) # Perte d'un pas
             print(f"Déplacement vers ({c_cible}, {r_cible}). Pas restants: {self.inventaire.pas}")
         else:
             print("Déplacement impossible : la porte n'est pas ouverte. Utilisez ESPACE pour interagir.")
@@ -424,7 +460,7 @@ class Game:
             can_open = True
             print("Porte déverrouillée (Niveau 0).")
         elif self.inventaire.cles > 0:
-            self.inventaire.depenser_cles_cles(1)
+            self.inventaire.modifier_cles(-1)
             can_open = True
             print(f"Clé dépensée. Porte déverrouillée (Niveau {lock_level}).")
         elif lock_level == 1 and self.inventaire.possede_objet("Kit de crochetage"):
@@ -443,15 +479,26 @@ class Game:
     def start_room_selection(self, door_direction):
         """ Déclenche l'état de sélection de pièce avec les options tirées. """
         
-        # Simuler un tirage (utilisez FakeRoom pour l'exemple)
-        self.current_room_options = [
-            FakeRoom("Antichambre", 0, (50, 50, 150)),
-            FakeRoom("Chambre Forte", 3, (150, 50, 50)),
-            FakeRoom("Jardin", 1, (50, 150, 50)),
-        ]
+        # 1. Tirage des 3 pièces (utilisant la rareté/poids)
+        # On utilise self.target_row pour la progression du lock_level, 
+        # mais ici on veut l'utiliser pour la rareté/pondération.
+        options_noms = self.tirer_pieces(nombre_options=3,r_cible=self.target_row)# target_row : rangée de la nouvelle pièce
+        self.current_room_options = [creer_piece(nom) for nom in options_noms]
+
+        # 2. Aligner chaque pièce tirée au sort
+        # La nouvelle pièce doit avoir une porte qui fait face à la pièce actuelle.
+        for room in self.current_room_options:
+            self.align_room_with_door(room,door_direction)
+        
+        # 3. Activation de l'état de sélection
         self.is_selecting_room = True
         self.selected_option_index = 0
-        print(f"Ouverture de porte vers {door_direction}. Choix de pièce activé.")
+
+        if self.current_room_options:
+            print(f"Ouverture de porte vers {door_direction}. Choix de pièce activé avec {len(self.current_room_options)} options")
+        else :
+            print("Erreur: Aucune pièce n'a pu être tirée.")
+            self.is_selecting_room = False
         
     def handle_selection_movement(self, key):
         """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
@@ -461,6 +508,39 @@ class Game:
             elif key == pygame.K_DOWN:
                 self.selected_option_index = (self.selected_option_index + 1) % len(self.current_room_options)
 
+    def handle_door_action(self, direction, screen):
+        """
+        Gère l'action "ESPACE" : Déplacement si pièce existante, ou Tente d'ouvrir si pièce nouvelle.
+        """
+        # 1. Calculer la position cible
+        dr, dc = 0, 0
+        if direction == "droite":
+            dr, dc = 0, 1
+        elif direction == "gauche":
+            dr, dc = 0, -1
+        elif direction == "haut":
+            dr, dc = -1, 0
+        elif direction == "bas":
+            dr, dc = 1, 0
+        else:
+            return
+
+        r_cible, c_cible = self.current_row + dr, self.current_col + dc
+        
+        # 2. Vérifier les limites de la grille (Mur)
+        if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
+            self.system_message = "Déplacement impossible : il y a un mur."
+            self.message_timer = pygame.time.get_ticks() + 2000 
+            return
+
+        # 3. Vérifier si la pièce cible existe déjà
+        if self.manoir_grid[r_cible][c_cible] is not None:
+            # La pièce existe, on se déplace
+            self.try_move_player(direction) 
+        else:
+            # La pièce n'existe pas, on tente d'ouvrir une nouvelle porte
+            self.check_and_open_door(direction)
+
     def confirm_room_selection(self):
         """ Valide la pièce sélectionnée et l'ajoute à la grille (Entrée). """
         if not self.is_selecting_room:
@@ -469,11 +549,15 @@ class Game:
         chosen_room = self.current_room_options[self.selected_option_index]
         
         # Vérification du coût en gemmes
-        if self.inventaire.gemmes >= chosen_room.cost:
-            self.inventaire.depenser_gemmes(chosen_room.cost)
+        if self.inventaire.gemmes >= chosen_room.cout_gemmes:
+            self.inventaire.modifier_gemmes(-chosen_room.cout_gemmes)
             
             # Ajout de la pièce à l'emplacement cible (défini par check_and_open_door)
             self.manoir_grid[self.target_row][self.target_col] = chosen_room 
+
+            #APPLICATION DE L'EFFET DE SÉLECTION
+            if hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "selection_complete":
+                chosen_room.appliquer_effet(self)
             
             # Réinitialisation de l'état
             self.is_selecting_room = False
@@ -481,25 +565,55 @@ class Game:
             
             # Le joueur avance immédiatement dans la nouvelle pièce
             self.current_row, self.current_col = self.target_row, self.target_col
-            self.inventaire.utiliser_pas(1)
-            
+
+            # APPLICATION DE L'EFFET D'ENTRÉE
+            is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
+
+            if is_entry_effect:
+                # Si l'effet est permanent (Chapel), on déclenche l'effet sans condition de visite.
+                if chosen_room.nom == "Chapel":
+                    chosen_room.appliquer_effet(self)
+                # Sinon (Bedroom, Master Bedroom), l'effet se déclenche à la première entrée
+                else:
+                    chosen_room.appliquer_effet(self)
+
+            # Marquer comme visitée (uniquement si l'effet n'est PAS Chapel/permanent)
+            if chosen_room.nom != "Chapel":
+                chosen_room.visitee = True
+
+            chosen_room.visitee = True
+            self.inventaire.modifier_pas(-1)
             print(f"Pièce choisie : {chosen_room.nom} ajoutée au manoir. Déplacement effectué.")
+            #self.check_for_loss_condition()
             
         else:
             print("Pas assez de gemmes pour cette pièce. Veuillez en choisir une autre ou appuyer sur une flèche pour annuler/changer.")
     
     
     def align_room_with_door(self, room: Room, move_dir_str: str):
+        """ 
+        Fait tourner la pièce jusqu'à ce qu'une porte soit sur le côté requis 
+        (opposé à la direction de mouvement).
+        """
+
         move_dir = DIR_FROM_STR[move_dir_str] 
         required_side = OPPOSITE[move_dir]
         idx_required = required_side.value 
+        
         if room.portes is None:
             return
+        
+        # Tenter jusqu'à 4 rotations (un tour complet)
         for _ in range(4):
-            if room.portes.positions[idx_required] == 1:
-                room.update_image_from_orientation()
+            if room.portes.a_porte(required_side):
+                # Mise à jour de l'image après la rotation
+                room.update_image_from_orientation() 
                 return
+            # Si pas de porte, on tourne
             room.rotate_clockwise(1)
+
+        room.update_image_from_orientation()
+
     #pour mettre à jour la map quand on choisit une salle
     def update(self):
         pass

@@ -11,9 +11,9 @@ class Inventaire:
     def __init__(self):
         # Objets consommables
         self.pas:int=70
-        self.pieces_or:int=0
+        self.pieces_or:int=5
         self.gemmes:int=2
-        self.cles:int=0
+        self.cles:int=5
         self.des:int=0
 
         #Objets permanents
