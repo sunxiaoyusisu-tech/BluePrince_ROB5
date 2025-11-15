@@ -78,8 +78,8 @@ class Game:
         Dessine la grille du manoir
         """
         title_size = 80 #taille de l'image d'entrée dans main.py
-        pos_depart_x = 160
-        pos_depart_y = 640
+        pos_depart_x = 100 #grille centré à gauche
+        pos_depart_y = 800 
 
         # Dessiner le cadre et les lignes du quadrillage (look Blueprint)
         BLUE_LINE = self.BLUEPRINT_BLUE
@@ -141,8 +141,8 @@ class Game:
         #font = pygame.font.Font(None,30)
 
         #Définir une zone pour l'inventaire
-        ui_x = 850
-        ui_y = 50
+        ui_x = 550
+        ui_y = 100
         WIDTH = 240
         HEIGHT = 280
         hauteur_ligne = 40
@@ -196,11 +196,11 @@ class Game:
         """
         Affiche les options de pièces à choisir
         """
-        x = 10
-        y = screen.get_height() - 140
-        WIDTH = screen.get_width() - 20 
-        HEIGHT = 130
-        image_size = 80
+        x = 550
+        y = screen.get_height() - 450
+        WIDTH = screen.get_width() - 560 
+        HEIGHT = 300
+        image_size = 100
 
         # 1. Dessiner le cadre de la Sélection (Fond + Contour)
         selection_rect = pygame.Rect(x - 10, y- 10, WIDTH, HEIGHT)
@@ -214,7 +214,7 @@ class Game:
         screen.blit(title, (x, y))
 
         # Calcul de l'espacement pour centrer les trois options
-        TOTAL_CONTENT_WIDTH = (3 * image_size) + (2 * 100) # 3 images + 2 espaces (200px)
+        TOTAL_CONTENT_WIDTH = (3 * image_size) + (2 * 200) # 3 images + 2 espaces (400px)
         # Position X de départ pour centrer l'ensemble des 3 options
         START_OFFSET_X = (WIDTH - TOTAL_CONTENT_WIDTH) // 2
 
@@ -223,14 +223,15 @@ class Game:
 
         for i, room in enumerate(self.current_room_options):
             
-            x_img_pos = x + START_OFFSET_X + i*(image_size+100)
+            x_img_pos = x + START_OFFSET_X + i*(image_size+200)
 
             # Encadrer l'option sélectionnée
             if i == self.selected_option_index:
-                pygame.draw.rect(screen, (255, 255, 0), (x_img_pos - 5, y_img_pos - 5, image_size + 160, 90), 2)
+                pygame.draw.rect(screen, (255, 255, 0), (x_img_pos - 5, y_img_pos - 5, image_size + 10, image_size + 10), 2)
             
             # Afficher l'image/couleur de la pièce
-            screen.blit(room.image, (x_img_pos, y_img_pos))
+            img=pygame.transform.scale(room.image, (image_size, image_size)) #agrandir l'image pour la selection
+            screen.blit(img, (x_img_pos, y_img_pos))
             
             # Afficher le nom et le coût (supposer room.nom et room.cost existent)
             details_text = self.font_small.render(f"{room.nom}", True, (200, 200, 200))
@@ -239,7 +240,7 @@ class Game:
             cost_text = self.font_small.render(f"Coût: {room.cost} Gemmes", True, (200, 200, 200))
             screen.blit(cost_text, (x_img_pos + image_size + 10, y_pos + 40))
             
-            y_pos += 100 # Espacement entre les options
+            #y_pos += 200 # Espacement entre les options
 
     def try_move_player(self, direction):
         """
