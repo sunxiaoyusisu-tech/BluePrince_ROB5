@@ -50,7 +50,6 @@ OPPOSITE = {
 class Game:
     def __init__(self):
 
-        
         #charger le joueur
         self.player = Player()
         self.inventaire = Inventaire()
@@ -66,6 +65,12 @@ class Game:
         # Position actuelle du joueur dans la grille (colonne, rangée)
         self.current_col = 2
         self.current_row = 8
+
+        # Variables d'etat pour l'interaction
+        self.is_interacting = False
+        self.current_interaction_object = None
+        self.interaction_message = ""
+        self.message_timer = 0 #pour les messages temporaires
 
         # Gestion de la pioche dynamique
         self.modeles_disponibles = self.tous_les_modeles() 
@@ -233,6 +238,10 @@ class Game:
         # Dessiner le pion du joueur (toujours en dernier pour qu'il soit par-dessus)
         #screen.blit(self.player.pion, self.player.rect)
 
+        # Dessiner le message d'interaction s'il est actif
+        if self.is_interacting and pygame.time.get_ticks() < self.message_timer:
+            self.draw_interaction_prompt(screen)
+
     def draw_ui(self,screen):
         """
         Dessine les éléments d'interface comme l'inventaire, les pas restants etc.
@@ -354,6 +363,111 @@ class Game:
             screen.blit(cost_text, (x_img_pos + image_size + 10, y_pos + 40))
             
             #y_pos += 200 # Espacement entre les options
+    
+    def draw_interaction_prompt(self,screen) : 
+        """
+        Dessine la boîte de dialogue pour l'interaction (ex: creuser)
+        """
+        if not self.is_interacting:
+            return
+        
+        x,y = 50, screen.get_height() - 100
+        width, height = 400,80
+
+        rect = pygame.Rect(x,y,width,height)
+        pygame.draw.rect(screen,self.DARK_BLUE,rect)
+        pygame.draw.rect(screen, (255,255,255),rect,2)
+
+        text_lines = [
+            self.interaction_message,
+            "Confirmer (Entrée) / Annuler (Echap)"
+        ]
+
+        for i,line in enumerate(text_lines):
+            text_surface = self.font_medium.render(line, True, (255,255,255))
+            screen.blit(text_surface,(x+10,y+10+i*25))
+    
+    #initialiser l'interaction
+    def start_interaction(self,current_room : Room) : 
+        """
+        Vérifie les objets de la pièce et commence une interaction si possible
+        """
+        if self.is_selecting_room:
+            return
+        
+        #Trouver un objet interactif (EndroitACreuser)
+        for obj in current_room.objets:
+            if isinstance(obj,EndroitACreuser):
+
+                #Verifie si l'interaction est possible
+                if self.inventaire.possede_pelle and not obj.est_utilise:
+
+                    self.is_interacting = True
+                    self.current_interaction_object = obj
+                    self.interaction_message = f"Voulez-vous creuser avec la Pelle à {obj.nom} ?"
+                    self.message_timer = pygame.time.get_ticks() + 10000 # 10 secondes pour répondre
+                    return # Un seul dig spot à la fois
+                elif not self.inventaire.possede_pelle:
+                    self.interaction_message = "Il y a un endroit à creuser, mais il vous faut une Pelle."
+                    self.message_timer = pygame.time.get_ticks() + 3000
+                    return
+
+                elif obj.est_utilise:
+                    self.interaction_message = "Cet endroit a déjà été creusé."
+                    self.message_timer = pygame.time.get_ticks() + 3000
+                    return
+        self.interaction_message = "Rien d'interactif"
+        self.message_timer = pygame.time.get_ticks() + 3000
+    
+    def digging(self):
+        """
+        Execute l'action de creuser
+        """
+        if not self.is_interacting or not isinstance(self.current_interaction_object, EndroitACreuser):
+            return 
+        
+        dig_spot: EndroitACreuser = self.current_interaction_object
+        
+        # Appeler la méthode pour effectuer le creusage
+        result = dig_spot.effectuer_creusage(self.player)
+
+        if result == "nothing":
+            self.interaction_message = "Vous creusez... et ne trouvez rien."
+        elif result == "no_shovel":
+            self.interaction_message = "Erreur: vous n'avez pas de pelle."
+        elif result == "already_used":
+            self.interaction_message = "Cet endroit est déjà vide."
+        else: # Un objet a été trouvé (result est le nom de l'objet)
+            if result == "cle":
+                self.inventaire.modifier_cles(1)
+            elif result == "gemme":
+                self.inventaire.modifier_gemmes(1)
+            elif result == "or":
+                self.inventaire.modifier_or(1)
+            elif result == "dé":
+                self.inventaire.modifier_des(1)
+            elif result == "pomme":
+                self.inventaire.modifier_pas(2)
+            elif result == "banane":
+                self.inventaire.modifier_pas(3)
+            elif result == "shovel":
+                self.inventaire.possede_pelle = True
+            elif result == "marteau":
+                self.inventaire.possede_marteau = True
+            elif result == "kit de crochetage":
+                self.inventaire.possede_kit_crochetage = True
+            elif result == "détecteur de métaux":
+                self.inventaire.possede_detecteur_metaux = True
+            elif result == "patte de lapin":
+                self.inventaire.possede_patte_lapin = True
+
+            self.interaction_message = f"Vous avez trouvé un(e) {result} !"
+        
+        #Reinitialiser l'etat d'interaction
+        self.is_interacting = False
+        self.current_interaction_object = None
+        self.message_timer = pygame.time.get_ticks() + 3000
+
 
     def try_move_player(self, direction):
         """
@@ -501,6 +615,11 @@ class Game:
         """
         Gère l'action "ESPACE" : Déplacement si pièce existante, ou Tente d'ouvrir si pièce nouvelle.
         """
+
+        #Gestion de l'interaction si active
+        if self.is_interacting:
+            return
+
         # 1. Calculer la position cible
         dr, dc = 0, 0
         if direction == "droite":
@@ -525,7 +644,10 @@ class Game:
         # 3. Vérifier si la pièce cible existe déjà
         if self.manoir_grid[r_cible][c_cible] is not None:
             # La pièce existe, on se déplace
-            self.try_move_player(direction) 
+            #self.try_move_player(direction) 
+            current_room = self.manoir_grid[self.current_row][self.current_col]
+            self.start_interaction(current_room)
+
         else:
             # La pièce n'existe pas, on tente d'ouvrir une nouvelle porte
             self.check_and_open_door(direction)
@@ -602,6 +724,33 @@ class Game:
             room.rotate_clockwise(1)
 
         room.update_image_from_orientation()
+    
+    def disperser_or_dans_manoir(self, quantite: int = 3):
+        """
+        Disperse un nombre spécifié de pièces d'or de manière aléatoire
+        dans les pièces déjà placées du manoir. (Effet de l'Office)
+        """
+        pieces_existantes = []
+        for r in range(self.grid_height):
+            for c in range(self.grid_width):
+                room = self.manoir_grid[r][c]
+                # Ne distribuer que dans les pièces qui existent et qui ne sont pas la pièce actuelle
+                if room is not None and (r != self.current_row or c != self.current_col):
+                    pieces_existantes.append(room)
+
+        if not pieces_existantes:
+            print("Aucune autre pièce disponible pour disperser l'or.")
+            return
+
+        import random
+
+        for _ in range(quantite):
+            # Choisir une pièce au hasard parmi celles disponibles
+            piece_cible = random.choice(pieces_existantes)
+            
+            # Ajouter l'objet "or" à sa liste d'objets (pour que le joueur le ramasse plus tard)
+            piece_cible.objets.append("or")
+            print(f"  -> Ajout d'une pièce d'or à : {piece_cible.nom}")
 
     #pour mettre à jour la map quand on choisit une salle
     def update(self):

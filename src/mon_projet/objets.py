@@ -108,23 +108,56 @@ class EndroitACreuser(ObjetInteractif):
     """
     Endroit à creuser : peut être utilisé avec une pelle.
     """
-    def __init__(self, contenu_possibles):
+    def __init__(self, contenu_possibles : list):
         super().__init__("Endroit à creuser")
         self.contenu_possibles = contenu_possibles
 
-    def interagir(self, joueur: 'Joueur'):
+    def utiliser(self, joueur: 'Joueur'):
+        """
+        Implémentation requise de la méthode abstraite 'utiliser' de la classe Objet.
+        Pour un objet interactif non consommable comme EndroitACreuser, elle ne fait rien.
+        """
+        pass
+
+    def interagir(self, joueur: 'Joueur') -> str :
+        """
+        Simule l'interaction. Retourne le nom de l'objet trouvé si creusage simulé réussi, sinon None
+        """
         if self.est_utilise:
             print("Tu as déjà creusé ici.")
             return
-        if not joueur.inventaire.possede("Pelle"):
-            print("Tu n'as pas de pelle pour creuser.")
-            return
+        
+        # Le joueur a la pelle. L'interface lui demande de confirmer l'action
+        print("Prêt à creuser")
+        return
 
+
+        #if not joueur.inventaire.possede("Pelle"):
+        #    print("Tu n'as pas de pelle pour creuser.")
+        #    return
+
+        #self.est_utilise = True
+        #import random
+        #if random.random() < 0.7:
+        #    objet = random.choice(self.contenu_possibles)
+        #    joueur.inventaire.ajouter(objet)
+        #    print(f"Tu as trouvé {objet.nom} !")
+        #else:
+        #    print("Rien ici...")
+
+    def effectuer_creusage(self,joueur:'Joueur') -> str : 
+        """
+        Effectue le creusage et met à jour l'inventaire si un objet est trouvé 
+        """
+
+        if not joueur.inventaire.possede_pelle:
+            return "pas de pelle"
         self.est_utilise = True
         import random
+
         if random.random() < 0.7:
-            objet = random.choice(self.contenu_possibles)
-            joueur.inventaire.ajouter(objet)
-            print(f"Tu as trouvé {objet.nom} !")
+            #l'objet doit etre instancié
+            nom_objet = random.choice(self.contenu_possibles)
+            return nom_objet
         else:
-            print("Rien ici...")
+            return "rien"

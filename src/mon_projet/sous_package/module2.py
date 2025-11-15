@@ -1,6 +1,7 @@
 """ Logique du jeu (gestion de l'inventaire, déplacements, catalogue de pièces) """
 
 from src.mon_projet.module1 import*
+from src.mon_projet.objets import*
 import random
 
 # Classes (enfants) pour gerer les effets speciaux
@@ -159,6 +160,7 @@ def creer_piece(type_piece: str) -> Room:
         "Drawing Room": DrawingRoom,
     }
     
+    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé"]
     classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
 
     # Dictionnaire de configuration des pièces
@@ -167,8 +169,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "The Foundation",
             "portes": Porte(0, 1, 1, 1),  
             "rarete": 3,
-            "objets": [],
-            # 2-5 dig spots
+            "objets": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"Couleur":CouleurPiece.BLEUE,
@@ -289,8 +290,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "The pool",
             "portes": Porte(0, 1, 1, 1),
             "rarete": 1,
-            "objets": [],
-            #between 2 and 5 Dig Spots (2,3 commonly)
+            "objets": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -312,8 +312,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Veranda",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 2,
-            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
-            #2-4 dig spots
+            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
@@ -387,18 +386,24 @@ def creer_piece(type_piece: str) -> Room:
         },
 
     }
+
+    config = pieces_config.get(type_piece)
+    
+    if config:
+        positions_initiales = config["portes"].positions
+        portes_instance = Porte(*positions_initiales)
     
     # Récupérer la configuration de la pièce
-    config = pieces_config[type_piece]
-    positions_initiales = config["portes"].positions
+    #config = pieces_config[type_piece]
+    #positions_initiales = config["portes"].positions
 
-    if len(positions_initiales) != 4:
-        raise ValueError(f"Configuration de porte invalide pour {type_piece} (doit avoir 4 positions).")
+    #if len(positions_initiales) != 4:
+    #    raise ValueError(f"Configuration de porte invalide pour {type_piece} (doit avoir 4 positions).")
     
-    portes_instance = Porte(*positions_initiales)
+    #portes_instance = Porte(*positions_initiales)
 
     # Créer et retourner l'instance de Room
-    return Room(
+    return classe_piece(
         nom=config["nom"],
         portes=portes_instance,
         rarete=config["rarete"], # 0 : CommonPlace ou N\A / 1 : Standard / 2: Unusual / 3 : Rare

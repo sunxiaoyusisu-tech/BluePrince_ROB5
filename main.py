@@ -67,12 +67,26 @@ while running:
 
             # quitter avec escape
             if event.key == pygame.K_ESCAPE:
-                running = False
-                pygame.quit()
-                print("Fermeture du jeu par ESC")
+                if game.is_interacting:
+                    game.is_interacting = False
+                    game.current_interaction_object = None
+                    print("Intéraction annulée")
+                else : 
+                    running = False
+                    pygame.quit()
+                    print("Fermeture du jeu par ESC")
+            
+            # Gestion de l'interaction
+            if game.is_interacting:
+                if event.key == pygame.K_RETURN:
+                    game.digging()
+                elif event.key == pygame.K_ESCAPE : 
+                    game.is_interacting = False
+                    game.current_interaction_object = None
+                    print("Interaction annulée par le joueur")
 
             # CONTRÔLES D'INTERFACE (Sélection de Pièce)
-            if game.is_selecting_room:
+            elif game.is_selecting_room:
 
                 # Flèches UP/DOWN pour naviguer, RETURN (Entrée) pour confirmer
 
