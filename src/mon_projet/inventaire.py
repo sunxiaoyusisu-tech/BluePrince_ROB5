@@ -11,7 +11,8 @@ class Inventaire:
         self.gemmes:int=2
         self.cles:int=0
         self.des:int=0
-        # Objets permanents
+        # [cite_start]Liste pour stocker les objets permanents acquis [cite: 52]
+        self.objets_permanents: List[ObjetPermanent] = []
 
     # operation sur pas
     def ajouter_pas(self,n:int):
