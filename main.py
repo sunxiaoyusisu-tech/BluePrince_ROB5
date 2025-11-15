@@ -74,11 +74,15 @@ while running:
 
             # CONTRÔLES D'INTERFACE (Sélection de Pièce)
             if game.is_selecting_room:
+
                 # Flèches UP/DOWN pour naviguer, RETURN (Entrée) pour confirmer
+
                 if event.key in [pygame.K_UP, pygame.K_DOWN]:
                     game.handle_selection_movement(event.key)
-                elif event.key == pygame.K_RETURN: 
+
+                elif event.key == pygame.K_RETURN:
                     game.confirm_room_selection()
+
                     
             # CONTRÔLES DE JEU (Mouvement et Interaction)
             else:
@@ -103,8 +107,8 @@ while running:
                     game.handle_door_action(direction, screen)
                     
                 # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
-                elif event.key == pygame.K_RETURN:
+                #elif event.key == pygame.K_RETURN:
                     # Tenter de se déplacer dans la direction courante
-                    game.try_move_player(direction,screen)
+                 #   game.try_move_player(direction,screen)
 
 game.update()

@@ -181,7 +181,7 @@ class Room:
         if self.image_path:
             # Charger l'image à partir du chemin
             temp_image = pygame.image.load(self.image_path).convert_alpha()
-            temp_image=pygame.transform.scale(temp_image,(80,80))
+            temp_image = pygame.transform.smoothscale(temp_image, (80, 80))
             self.base_image=temp_image
             self.image=temp_image
             
@@ -262,4 +262,5 @@ class Room:
             self.orientation=(self.orientation+1)%4
     def update_image_from_orientation(self):
         angle=-90*self.orientation
+        # On utilise self.base_image pour une rotation correcte (image non déformée)
         self.image=pygame.transform.rotate(self.base_image, angle)

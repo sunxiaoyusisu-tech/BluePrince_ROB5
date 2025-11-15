@@ -141,7 +141,10 @@ class Game:
     def tirer_pieces(self, nombre_options: int = 3, r_cible: int = 0) -> list:
         """ tirer aleatoirement des pieces dans la pioche"""
         options = []
-        pioche_avec_cout_zero = [nom for nom in self.pioche_disponible if creer_piece(nom).cout_gemmes == 0]
+        pioche_avec_cout_zero = [
+            nom for nom in self.pioche_disponible 
+            if self.piece_metadata_cache.get(nom, {}).get('cout_gemmes', 1) == 0
+        ]
 
         if not self.pioche_disponible:
             print("Erreur critique : Pioche vide.")
@@ -151,22 +154,19 @@ class Game:
         if pioche_avec_cout_zero and not any(nom in options for nom in pioche_avec_cout_zero):
             choix_zero = random.choice(pioche_avec_cout_zero)
             self.pioche_disponible.remove(choix_zero)
-            options.append(choix_zero) # <-- Ajout du NOM
+            options.append(choix_zero) 
         
         # 2. Remplir le reste des options (en utilisant la rareté/pondération)
         while len(options) < nombre_options and self.pioche_disponible:
             
-            # Calculer les poids basés sur la rareté
             noms = [nom for nom in self.pioche_disponible if nom not in options]
             
-            # La nécessité d'instancier ici ralentit, mais est nécessaire pour le poids si on n'utilise pas le cache
-            pieces = [creer_piece(nom) for nom in noms] 
-            
-            poids = [piece.rarete.poids for piece in pieces] # Utilisation directe de .poids
+            # --- Utilisation du Cache pour les Poids (RAPIDE) ---
+            poids = [self.piece_metadata_cache.get(nom, {}).get('poids', 0) for nom in noms]
             total_poids = sum(poids)
             
             if total_poids == 0:
-                print("Erreur: total des poids = 0")
+                print("Erreur: total des poids = 0 pour le tirage.")
                 break
                 
             poids_normalises = [p / total_poids for p in poids]
@@ -174,10 +174,9 @@ class Game:
             # Tirage pondéré
             choix_nom = np.random.choice(a=noms, size=1, p=poids_normalises)[0] 
 
-            # Retrait et ajout à la liste
             self.pioche_disponible.remove(choix_nom)
-            options.append(choix_nom) # <-- Ajout du NOM
-
+            options.append(choix_nom)
+            
         return options
     
     def draw_manoir_grid(self,screen):
@@ -349,7 +348,7 @@ class Game:
                 pygame.draw.rect(screen, (255, 255, 0), (x_img_pos - 5, y_img_pos - 5, image_size + 10, image_size + 10), 2)
             
             # Afficher l'image/couleur de la pièce
-            img=pygame.transform.scale(room.image, (image_size, image_size)) #agrandir l'image pour la selection
+            img = pygame.transform.smoothscale(room.image, (image_size, image_size)) 
             screen.blit(img, (x_img_pos, y_img_pos))
             
             # Afficher le nom et le coût (supposer room.nom et room.cost existent)
@@ -479,10 +478,11 @@ class Game:
     def start_room_selection(self, door_direction):
         """ Déclenche l'état de sélection de pièce avec les options tirées. """
         
-        # 1. Tirage des 3 pièces (utilisant la rareté/poids)
-        # On utilise self.target_row pour la progression du lock_level, 
-        # mais ici on veut l'utiliser pour la rareté/pondération.
-        options_noms = self.tirer_pieces(nombre_options=3,r_cible=self.target_row)# target_row : rangée de la nouvelle pièce
+        # 1. Tirage des 3 NOMS de pièces (rapide grâce au cache)
+        options_noms = self.tirer_pieces(nombre_options=3, r_cible=self.target_row)
+
+        # 2. Instanciation des objets Room complets (avec chargement d'image) (1 seule fois)
+        # C'est l'équivalent de la boucle for dans le code externe.
         self.current_room_options = [creer_piece(nom) for nom in options_noms]
 
         # 2. Aligner chaque pièce tirée au sort
