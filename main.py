@@ -31,11 +31,11 @@ while running:
     #Appliquer l'arrière plan
     screen.fill(background)
 
-    #appliquer la pièce d'entrée
-    #screen.blit(entrance,(160,640))
-
     # Appliquer la grille du manoir (Zone Gauche)
     game.draw_manoir_grid(screen)
+
+    #appliquer la pièce d'entrée
+    screen.blit(entrance,(260,720))
 
     #Dessiner l'interface utilisateur
     game.draw_ui(screen)
