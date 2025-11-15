@@ -143,7 +143,7 @@ class Game:
         #Définir une zone pour l'inventaire
         ui_x = 500
         ui_y = 30
-        WIDTH = 240
+        WIDTH = 700
         HEIGHT = 280
         hauteur_ligne = 40
         
@@ -174,23 +174,25 @@ class Game:
             screen.blit(text, (ui_x,y_pos))
             y_pos += hauteur_ligne
         
-        #y_pos += hauteur_ligne # Espace pour les objets permanents
-        
+        # Séparateur vertical entre consommables et permanents
+        x_pos = ui_x + 250
+        y_pos = ui_y + 50
+
         # Titre pour les objets permanents
-        #title_text = font.render("Objets Permanents :",True,(255,255,255))
-        #screen.blit(title_text,(ui_x,y_pos))
-        #y_pos += hauteur_ligne
+        title_text = self.font_medium.render("Objets Permanents :",True,(0,150,255))
+        screen.blit(title_text,(x_pos ,ui_y))
+        y_pos += ui_y + 50
 
         # Dessiner la liste des objets permanents
-        #if self.inventaire.objets_permanents:
-        #    for objet in self.inventaire.objets_permanents:
-        #        obj_text = font.render(f"- {objet.nom}", True, (150, 255, 150)) # Vert clair
-        #        screen.blit(obj_text, (ui_x + 10, y_pos))
-        #        y_pos += 20
+        if self.inventaire.objets_permanents:
+            for objet in self.inventaire.objets_permanents:
+                obj_text = self.font_medium.render(f"- {objet.nom}", True, (150, 255, 150)) # Vert clair
+                screen.blit(obj_text, (x_pos + 10, y_pos))
+                y_pos += hauteur_ligne
 
-        #else:
-        #    none_text = font.render("- Aucun", True, (100, 100, 100))
-        #    screen.blit(none_text, (ui_x+ 10, y_pos))
+        else:
+            none_text = self.font_medium.render("- Aucun", True, (100, 100, 100))
+            screen.blit(none_text, (x_pos + 10, y_pos))
 
     def draw_room(self,screen):
         """
