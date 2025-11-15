@@ -1,5 +1,7 @@
 import pygame
 from joueur import*
+from mon_projet.module1 import Direction, Room
+from mon_projet.module2 import creer_piece
 
 from src.mon_projet.module1 import*
 import random
@@ -40,9 +42,24 @@ def generer_lock_level(target_row: int) -> int:
 #        # Charger une image par défaut ou une image de test
 #        self.image = pygame.Surface((80, 80))
 #        self.image.fill(color)
+DIR_FROM_STR = {
+    "haut": Direction.UP,
+    "bas": Direction.DOWN,
+    "droite": Direction.RIGHT,
+    "gauche": Direction.LEFT,
+}
+
+OPPOSITE = {
+    Direction.UP: Direction.DOWN,
+    Direction.DOWN: Direction.UP,
+    Direction.RIGHT: Direction.LEFT,
+    Direction.LEFT: Direction.RIGHT,
+}
 
 class Game:
     def __init__(self):
+
+        
         #charger le joueur
         self.player = Player()
         self.inventaire = Inventaire()
@@ -92,7 +109,8 @@ class Game:
         self.selected_option_index = 0 # Index de la pièce actuellement sélectionnée
         self.target_row = 0
         self.target_col = 0
-    
+        self.last_move_dir_str = None
+
     # Gestion du catalogue et de la pioche
     
     def tous_les_modeles(self):
@@ -418,6 +436,7 @@ class Game:
         # 3. Si l'ouverture est réussie, démarrer la sélection
         if can_open:
             self.target_row, self.target_col = r_cible, c_cible
+            self.last_move_dir_str = direction 
             self.start_room_selection(direction)
 
 
@@ -468,7 +487,19 @@ class Game:
             
         else:
             print("Pas assez de gemmes pour cette pièce. Veuillez en choisir une autre ou appuyer sur une flèche pour annuler/changer.")
-
+    
+    
+    def align_room_with_door(self, room: Room, move_dir_str: str):
+        move_dir = DIR_FROM_STR[move_dir_str] 
+        required_side = OPPOSITE[move_dir]
+        idx_required = required_side.value 
+        if room.portes is None:
+            return
+        for _ in range(4):
+            if room.portes.positions[idx_required] == 1:
+                room.update_image_from_orientation()
+                return
+            room.rotate_clockwise(1)
     #pour mettre à jour la map quand on choisit une salle
     def update(self):
         pass

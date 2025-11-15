@@ -56,6 +56,11 @@ class Porte:
         if self.a_porte(direction):
             self.niveaux_verrouillage[direction.value] = niveau
 
+    def rotate_clockwise(self, quarter_turns:int= 1):
+        """Fait tourner les portes de 90° dans le sens horaire."""
+        for _ in range(quarter_turns):
+            up,down,right,left =self.positions
+            self.positions = [left,right,up,down]
 #class CouleurPiece(Enum):
 #    JAUNE = "jaune"       # magasins
 #    VERTE = "verte"       # jardins d’intérieur
@@ -170,17 +175,23 @@ class Room:
         self.image_path = image_path
         self.visitee = False
         #self.image = nom + ".png"  # Nom de l'image associée à la pièce
+        self.orientation=0
+        #pos oringinal #0:0de 1:90de etc...
 
         if self.image_path:
             # Charger l'image à partir du chemin
-            temp_image = pygame.image.load(self.image_path)
+            temp_image = pygame.image.load(self.image_path).convert_alpha()
+            temp_image=pygame.transform.scale(temp_image,(80,80))
+            self.base_image=temp_image
+            self.image=temp_image
             
             # Redimensionner l'image à la taille standard de la grille (80x80 pixels, d'après jeu.py)
-            self.image = pygame.transform.scale(temp_image, (80, 80))
+            
         else:
             # Créer une surface par défaut (carré noir) si le chemin est manquant
             self.image = pygame.Surface((80, 80))
-            self.image.fill((0, 0, 0))
+            self.base_image.fill((0, 0, 0))
+            self.image=self.base_image
 
     #def apparait(self) -> bool: #c'est généré objet
         """
@@ -243,3 +254,12 @@ class Room:
         #self.objets.append(objet)
         #self.proba_obj.append(1.0)  # objet garanti une fois ajouté
         #print(f"Chanceux ! Un objet bonus '{objet}' apparaît dans {self.nom}.")
+    def rotate_clockwise(self,quarter_turns:int=1):
+        # faire rotation de room et puis uptade portes
+        for _ in range(quarter_turns):
+            if self.portes is not None:
+                self.portes.rotate_clockwise(1)
+            self.orientation=(self.orientation+1)%4
+    def update_image_from_orientation(self):
+        angle=-90*self.orientation
+        self.image=pygame.transform.rotate(self.base_image, angle)
