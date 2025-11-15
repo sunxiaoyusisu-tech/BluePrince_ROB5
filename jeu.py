@@ -104,11 +104,6 @@ class Game:
         self.LIGHT_BLUE = (150, 200, 255)   # Couleur claire pour le texte/cadre
         self.DARK_BLUE = (0, 50, 150)       # Couleur foncée pour le remplissage
 
-        # La pioche contient les noms des pièces disponibles pour le tirage
-        #self.pioche_disponible = self.initialiser_pioche_globale()
-
-        # Gardez une référence à tous les modèles pour pouvoir ajouter de nouvelles pièces facilement
-        #self.modeles_disponibles = self.get_tous_les_modeles()
         
         # État de la Sélection de Pièce (affichage en bas à droite)
         self.is_selecting_room = False 
@@ -409,12 +404,6 @@ class Game:
             if not chosen_room.visitee:
                 chosen_room.visitee = True
 
-        #if 0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width and self.manoir_grid[r_cible][c_cible] is not None:
-            #self.current_row, self.current_col = r_cible, c_cible
-            #self.inventaire.modifier_pas(-1) # Perte d'un pas
-            #print(f"Déplacement vers ({c_cible}, {r_cible}). Pas restants: {self.inventaire.pas}")
-        #else:
-         #   print("Erreur de logique: tentative de déplacement dans une pièce non existante/mur.")
 
         # 2. Vérifier si la pièce existe déjà et si la porte est ouverte (non implémenté)
         if self.manoir_grid[r_cible][c_cible] is not None:

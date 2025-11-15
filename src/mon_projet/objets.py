@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 from abc import ABC, abstractmethod
 
 # Fait venir la classe Joueur pour éviter les dépendances circulaires
@@ -128,8 +128,3 @@ class EndroitACreuser(ObjetInteractif):
             print(f"Tu as trouvé {objet.nom} !")
         else:
             print("Rien ici...")
-
-# Méthode d’utilisation dans une pièce
-#class Piece:
-    #def __init__(self):
-        #self.objets_interactifs = [EndroitACreuser([Pomme(), Banane()])]
