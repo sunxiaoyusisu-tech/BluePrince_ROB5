@@ -8,11 +8,7 @@ pygame.font.init()
 
 pygame.display.set_caption("Blue Prince")
 
-#screen = pygame.display.set_mode((1080,720))
-infoObject = pygame.display.Info()
-SCREEN_WIDTH = infoObject.current_w
-SCREEN_HEIGHT = infoObject.current_h
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((1536,864), pygame.FULLSCREEN) #pour garder les bonnes dimensions
 
 direction = "haut" # Position par défaut au début du jeu
 
