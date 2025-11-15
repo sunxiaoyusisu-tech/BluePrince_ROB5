@@ -270,7 +270,7 @@ class Game:
         if self.manoir_grid[r_cible][c_cible] is not None:
             # Effectuer le déplacement
             self.current_row, self.current_col = r_cible, c_cible
-            self.inventaire.modifier_pas(-1) # Perte d'un pas
+            self.inventaire.utiliser_pas(1) # Perte d'un pas
             print(f"Déplacement vers ({c_cible}, {r_cible}). Pas restants: {self.inventaire.pas}")
         else:
             print("Déplacement impossible : la porte n'est pas ouverte. Utilisez ESPACE pour interagir.")
@@ -309,7 +309,7 @@ class Game:
             can_open = True
             print("Porte déverrouillée (Niveau 0).")
         elif self.inventaire.cles > 0:
-            self.inventaire.modifier_cles(-1)
+            self.inventaire.depenser_cles_cles(1)
             can_open = True
             print(f"Clé dépensée. Porte déverrouillée (Niveau {lock_level}).")
         elif lock_level == 1 and self.inventaire.possede_objet("Kit de crochetage"):
