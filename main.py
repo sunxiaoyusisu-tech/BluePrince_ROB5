@@ -8,7 +8,7 @@ pygame.font.init()
 
 pygame.display.set_caption("Blue Prince")
 
-screen = pygame.display.set_mode((1280,740))
+screen = pygame.display.set_mode((1280,740),pygame.FULLSCREEN)
 
 direction = "haut" # Position par défaut au début du jeu
 
