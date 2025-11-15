@@ -1,3 +1,7 @@
+from typing import List, Optional
+# On importe les types d'objets, pas les instances
+from .objets import ObjetPermanent, Objet
+
 """
 Inventaire du joueur : gestion des ressources et des objets permanents.
 """
