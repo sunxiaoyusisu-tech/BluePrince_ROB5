@@ -8,7 +8,7 @@ pygame.font.init()
 
 pygame.display.set_caption("Blue Prince")
 
-screen = pygame.display.set_mode((1536,864), pygame.FULLSCREEN) #pour garder les bonnes dimensions
+screen = pygame.display.set_mode((1280,740))
 
 direction = "haut" # Position par défaut au début du jeu
 
@@ -16,9 +16,13 @@ direction = "haut" # Position par défaut au début du jeu
 background= (30, 30, 100)
 
 #charger l'entrée
-#entrance_room = Room
-entrance = pygame.image.load('image/Entrance_Hall.png')
+entrance = pygame.image.load('Rooms/Entrance_Hall.png')
 entrance = pygame.transform.scale(entrance,(80,80))
+
+#charger l'entrée
+antechamber = pygame.image.load('Rooms/Antechamber.png')
+antechamber = pygame.transform.scale(antechamber,(80,80))
+
 #charger le jeu
 game = Game()
 
@@ -31,7 +35,10 @@ while running:
     game.draw_manoir_grid(screen)
 
     #appliquer la pièce d'entrée
-    screen.blit(entrance,(260,720))
+    screen.blit(entrance,(170,650))
+
+    #appliquer la pièce antechamber
+    screen.blit(antechamber,(170,10))
 
     #Dessiner l'interface utilisateur
     game.draw_ui(screen)
