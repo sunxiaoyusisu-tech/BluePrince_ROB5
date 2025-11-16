@@ -484,7 +484,7 @@ class Game:
             if isinstance(item,str) :
                 collected_something = True
                 items_to_remove.append(item)
-                self._collect_item(item)
+                self.collect_item(item)
 
         #Retirer les objets collectés
         for item in items_to_remove:
@@ -601,8 +601,24 @@ class Game:
             self.current_row, self.current_col = r_cible, c_cible
             self.inventaire.modifier_pas(-1) # Perte d'un pas
             self.add_message(f"Déplacé vers {chosen_room.nom}. Pas: {self.inventaire.pas}", (150, 200, 255))
-        else:
-            self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
+            items_to_remove = []
+            for item in chosen_room.objets:
+                if isinstance(item, str):
+                    items_to_remove.append(item)
+                    self.collect_item(item)
+            for item in items_to_remove:
+                chosen_room.objets.remove(item)
+            else:
+                self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
+        
+        current_room = self.manoir_grid[self.current_row][self.current_col]
+        
+        if current_room and current_room.portes:
+            direction_enum = DIR_FROM_STR[direction]
+        
+        if not current_room.portes.a_porte(direction_enum):
+            self.add_message("Pas de porte dans cette direction!", (255, 100, 100))
+            return
 
     def check_and_open_door(self, direction):
         """
@@ -627,6 +643,15 @@ class Game:
         # 2. Vérifier si l'ouverture est pertinente
         if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width) or self.manoir_grid[r_cible][c_cible] is not None:
             print("Action de porte inutile ici.")
+            return
+        
+        current_room = self.manoir_grid[self.current_row][self.current_col]
+        
+        if current_room and current_room.portes:
+            direction_enum = DIR_FROM_STR[direction]
+        
+        if not current_room.portes.a_porte(direction_enum):
+            self.add_message("Pas de porte dans cette direction!", (255, 100, 100))
             return
         
         lock_level = generer_lock_level(r_cible)
@@ -714,17 +739,26 @@ class Game:
         if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
             self.add_message("Impossible de bouger : il y a un mur!", (255, 100, 100)) 
             return
+        
+        current_room = self.manoir_grid[self.current_row][self.current_col]
+        
+        if current_room and current_room.portes:
+            direction_enum = DIR_FROM_STR[direction]
+        
+        if not current_room.portes.a_porte(direction_enum):
+            self.add_message("Pas de porte dans cette direction!", (255, 100, 100))
+            return
 
         # 3. Vérifier si la pièce cible existe déjà
         if self.manoir_grid[r_cible][c_cible] is not None:
             # La pièce existe, on se déplace
             #self.try_move_player(direction) 
-            current_room = self.manoir_grid[self.current_row][self.current_col]
-            self.start_interaction(current_room)
+            self.try_move_player(direction)
 
         else:
             # La pièce n'existe pas, on tente d'ouvrir une nouvelle porte
             self.check_and_open_door(direction)
+        
 
     def confirm_room_selection(self):
         """ Valide la pièce sélectionnée et l'ajoute à la grille (Entrée). """
@@ -787,6 +821,15 @@ class Game:
             # Marquer comme visitée (sauf Chapel qui peut être visitée plusieurs fois pour l'effet)
             if chosen_room.nom != "Chapel":
                 chosen_room.visitee = True
+
+            items_to_remove = []
+            for item in chosen_room.objets:
+                if isinstance(item, str):
+                    items_to_remove.append(item)
+                    self.collect_item(item)
+
+            for item in items_to_remove:
+                chosen_room.objets.remove(item)
 
             self.inventaire.modifier_pas(-1)
             

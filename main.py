@@ -112,7 +112,7 @@ while running:
                 elif event.key == pygame.K_s:
                     direction = "bas"
                     game.player.pion = pygame.transform.rotate(game.player.direction, 180)
-                
+
                 # ESPACE pour l'action : tenter d'ouvrir/déverrouiller
                 elif event.key == pygame.K_SPACE:
                     
