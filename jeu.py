@@ -11,6 +11,8 @@ sys.path.insert(0, 'src')
 from mon_projet.inventaire import * 
 from mon_projet.sous_package.module2 import *
 
+# Dictionnaires de mapping pour les directions
+
 DIR_FROM_STR = {
     "haut": Direction.UP,
     "bas": Direction.DOWN,
@@ -27,27 +29,48 @@ OPPOSITE = {
 
 # Fonction utilitaire de génération du niveau de verrouillage
 def generer_lock_level(target_row: int) -> int:
+    
     """ 
     Détermine le niveau de verrouillage (0, 1 ou 2) d'une nouvelle porte 
-    en fonction de la rangée cible (0=haut, 8=bas).
+    en fonction de la rangée cible (0=haut, 8=bas). Le niveau augmente
+    avec la progression vers le haut.
+
+    Args:
+        target_row (int): L'indice de la rangée de la pièce cible (0 à 8).
+
+    Returns:
+        int: Le niveau de verrouillage (0, 1 ou 2).
     """
+
     if target_row == 8: # Rangée de départ (en bas)
         return 0 
     elif target_row == 0: # Rangée d'arrivée (en haut)
         return 2 
     else:
+
         # Progression factor va de ~0.0 (rangée 7) à ~1.0 (rangée 1)
         progression_factor = (8 - target_row) / 7 
         
-        if random.random() < progression_factor * 0.40: # Chance max de 40% pour un Niveau 2
+        # Chance max de 40% pour un Niveau 2 (augmente vers le haut)
+        if random.random() < progression_factor * 0.40: 
             return 2
-        elif random.random() < progression_factor * 0.75: # Chance max de 75% pour un Niveau 1 ou 2
+        
+        # Chance max de 75% pour un Niveau 1 ou 2 (augmente vers le haut)
+        elif random.random() < progression_factor * 0.75: 
             return 1
         else:
             return 0 
 
 class Game:
+
+    """
+    Classe principale gérant l'état global du jeu, la grille du manoir,
+    le joueur, l'inventaire et les interactions.
+    """
+
     def __init__(self):
+
+        # Initialisation des attributs
 
         #charger le joueur
         self.player = Player()
@@ -125,15 +148,28 @@ class Game:
     
     #Methodes pour les messages
     def add_message(self, message:str,color=(255,255,100)):
+
         """
-        Ajoute un message système à afficher
+        Ajoute un message système à afficher temporairement à l'écran.
+
+        Args:
+            message (str): Le message à afficher.
+            color (tuple): La couleur du texte (par défaut: jaune).
         """
+
         timestamp = pygame.time.get_ticks() + self.MESSAGE_DURATION
         self.system_messages.append((message, timestamp, color))
         print(f"[GAME] {message}")
     
     def draw_system_messages(self, screen):
-        """Dessine les messages système à l'écran"""
+        
+        """
+        Dessine les messages système actifs à l'écran et supprime les messages expirés.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
+        """
+
         current_time = pygame.time.get_ticks()
         
         # Supprime les messages expirés
@@ -150,9 +186,14 @@ class Game:
             y_offset += 35
     
     def collect_item(self,item_name:str):
+
         """
-        Collecte un objet et met à jour l'inventaire
+        Collecte un objet nommé et met à jour l'inventaire en conséquence.
+
+        Args:
+            item_name (str): Le nom de l'objet à collecter.
         """
+
         item_effects = {
             "cle": ("Trouvé une Clé!", lambda: self.inventaire.modifier_cles(1)),
             "gemme": ("Trouvé un gemme!", lambda: self.inventaire.modifier_gemmes(1)),
@@ -179,26 +220,63 @@ class Game:
     # Gestion du catalogue et de la pioche
     
     def tous_les_modeles(self):
-        """ Retourne le nom des pieces disponibles """
+        
+        """ 
+        Retourne la liste complète des noms de toutes les pièces disponibles dans le jeu.
+        
+        Returns:
+            list: Liste des noms de pièces.
+        """
+
         return ["The Foundation","GiftShop", "GiftShop","GiftShop", "Entrance Hall", "Spare Room", "Nook", "Garage", "Music Room", 
                 "Drawing Room", "Study", "Sauna", "Coat Check", "Mail Room", 
                 "The pool", "Chamber of mirrors", "Veranda", "Furnace", 
                 "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom", "Portail Mystique", "Portail Mystique"]
     
     def initialiser_pioche(self):
-        """ Liste initiale des noms de pièces """
+        
+        """ 
+        Crée la liste initiale des noms de pièces dans la pioche, en retirant l'Entrance Hall.
+        
+        Returns:
+            list: Liste des noms de pièces disponibles pour le tirage.
+        """
+
         pioche = self.tous_les_modeles()
+
+        # Entrance Hall est la pièce de départ, elle n'est pas tirée
         pioche.remove("Entrance Hall")
         return pioche
     
     def ajouter_pieces_au_catalogue(self, noms_pieces: list):
-        """ Ajoute une ou plusieurs pièces à la pioche disponible (pour l'effet 'The pool'). """
+        
+        """ 
+        Ajoute une ou plusieurs pièces à la pioche disponible (utilisé par l'effet 'The Pool'). 
+
+        Args:
+            noms_pieces (list): Liste des noms de pièces à ajouter.
+        """
+
         self.pioche_disponible.extend(noms_pieces)
         self.add_message(f"Catalogue mis à jour : {len(noms_pieces)} pièces ajoutées!", (100, 255, 100))
     
     def tirer_pieces(self, nombre_options: int = 3, r_cible: int = 0) -> list:
-        """ tirer aleatoirement des pieces dans la pioche"""
+
+        """ 
+        Tire aléatoirement des pièces dans la pioche en utilisant la rareté/pondération,
+        et garantit qu'au moins une pièce de coût zéro est proposée.
+
+        Args:
+            nombre_options (int): Le nombre total de pièces à tirer (par défaut 3).
+            r_cible (int): La rangée cible (utilisée pour des conditions futures, actuellement non utilisée dans le tirage).
+
+        Returns:
+            list: Une liste de noms des pièces tirées.
+        """
+
         options = []
+
+        # Liste des pièces de coût 0 pour garantir au moins une option gratuite
         pioche_avec_cout_zero = [
             nom for nom in self.pioche_disponible 
             if self.piece_metadata_cache.get(nom, {}).get('cout_gemmes', 1) == 0
@@ -209,6 +287,7 @@ class Game:
             return []
             
         # 1. Tirer d'abord la pièce de coût 0 (si nécessaire)
+        # S'assure qu'au moins une pièce de coût 0 est proposée si la pioche en contient
         if pioche_avec_cout_zero and not any(nom in options for nom in pioche_avec_cout_zero):
             choix_zero = random.choice(pioche_avec_cout_zero)
             self.pioche_disponible.remove(choix_zero)
@@ -222,7 +301,7 @@ class Game:
             # Utilisation du Cache pour les Poids (RAPIDE)
             poids = [self.piece_metadata_cache.get(nom, {}).get('poids', 0) for nom in noms]
             
-            # Nouveau: effet patte de lapin
+            # Effet patte de lapin (augmente le poids des pièces rares)
             if self.inventaire.possede_patte_lapin:
                 print("patte de lapin activee")
                 for i, nom in enumerate(noms):
@@ -247,13 +326,16 @@ class Game:
             
         return options
     
-
-
-    
     def draw_manoir_grid(self,screen):
+        
         """
-        Dessine la grille du manoir
+        Dessine la grille du manoir, les pièces découvertes, et le pion du joueur.
+        Applique un style 'Blueprint' avec des lignes bleues.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         title_size = 80 #taille de l'image d'entrée dans main.py
         pos_depart_x = 10 #grille centré à gauche
         pos_depart_y = 730 
@@ -264,6 +346,7 @@ class Game:
         # CADRE EXTÉRIEUR DE LA ZONE DE JEU
         GRID_WIDTH_TOTAL = self.grid_width * title_size
         GRID_HEIGHT_TOTAL = self.grid_height * title_size
+
         # Le cadre doit être ajusté pour ne pas empiéter sur le menu de sélection en bas.
         GAME_RECT = pygame.Rect(pos_depart_x- 10, pos_depart_y - GRID_HEIGHT_TOTAL - 10, 
                                 GRID_WIDTH_TOTAL + 20, GRID_HEIGHT_TOTAL + 20)
@@ -306,9 +389,6 @@ class Game:
         self.player.rect.x = player_x
         self.player.rect.y = player_y
 
-        # Dessiner le pion du joueur (toujours en dernier pour qu'il soit par-dessus)
-        #screen.blit(self.player.pion, self.player.rect)
-
         # Dessiner le message d'interaction s'il est actif
         if self.is_interacting :
             self.draw_interaction_prompt(screen)
@@ -316,12 +396,14 @@ class Game:
         self.draw_system_messages(screen)
 
     def draw_ui(self,screen):
+        
         """
-        Dessine les éléments d'interface comme l'inventaire, les pas restants etc.
-        """
+        Dessine les éléments d'interface utilisateur (Inventaire, ressources consommables
+        et objets permanents).
 
-        # Affichage des ressources consommables
-        #font = pygame.font.Font(None,30)
+        Args:
+            screen (pygame.Surface): La surface de dessin.
+        """
 
         #Définir une zone pour l'inventaire
         ui_x = 500
@@ -332,8 +414,10 @@ class Game:
         
         # Dessiner le cadre de l'Inventaire (Fond + Contour)
         inventory_rect = pygame.Rect(ui_x- 10, ui_y - 10, WIDTH, HEIGHT)
+
         # Fond légèrement plus foncé
         pygame.draw.rect(screen, self.DARK_BLUE, inventory_rect)
+
         # Contour bleu clair pour délimiter
         pygame.draw.rect(screen, self.BLUEPRINT_BLUE, inventory_rect, 2)
 
@@ -398,9 +482,14 @@ class Game:
 
 
     def draw_room(self,screen):
+        
         """
-        Affiche les options de pièces à choisir
+        Affiche les options de pièces tirées au sort que le joueur peut choisir.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         x = 500
         y = screen.get_height() - 250
         WIDTH = 600 
@@ -412,6 +501,7 @@ class Game:
 
         # Calcul de l'espacement pour centrer les trois options
         TOTAL_CONTENT_WIDTH = (3 * image_size) + (2 * 150) # 3 images + 2 espaces (300px)
+
         # Position X de départ pour centrer l'ensemble des 3 options
         START_OFFSET_X = (WIDTH - TOTAL_CONTENT_WIDTH) // 2
 
@@ -439,16 +529,22 @@ class Game:
             
             realance_text = self.font_medium.render("Relancer (R)", True, (250, 250, 0))
             screen.blit(realance_text, (x + 600, y))
-            #y_pos += 200s options # Espacement entre le
     
     def draw_interaction_prompt(self,screen) : 
+        
         """
-        Dessine la boîte de dialogue pour l'interaction (ex: creuser)
+        Dessine la boîte de dialogue pour l'interaction simple (creuser, ouvrir coffre).
+        Pour le magasin, la méthode draw_magasin est utilisée.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         if not self.is_interacting:
             return
         
         if isinstance(self.current_interaction_object, Magasin):
+
             # C'est l'interaction Magasin, elle a sa propre méthode de dessin
             self.draw_magasin(screen)
             return
@@ -470,9 +566,14 @@ class Game:
             screen.blit(text_surface,(x+10,y+10+i*25))
     
     def draw_magasin(self,screen):
+        
         """
-        Dessine l'interface d'achat pour le magasin
+        Dessine l'interface d'achat pour l'objet Magasin.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         if not self.is_interacting or not isinstance(self.current_interaction_object,Magasin):
             return
         shop: Magasin = self.current_interaction_object
@@ -518,9 +619,15 @@ class Game:
 
     #initialiser l'interaction
     def start_interaction(self,current_room : Room) : 
+        
         """
-        Vérifie les objets de la pièce et commence une interaction si possible
+        Vérifie les objets de la pièce actuelle et commence une interaction 
+        avec un objet (Magasin, Coffre, EndroitACreuser) si possible.
+
+        Args:
+            current_room (Room): La pièce où se situe le joueur.
         """
+
         if self.is_selecting_room:
             return
         
@@ -582,14 +689,10 @@ class Game:
                     return # Un seul dig spot à la fois
                 elif not self.inventaire.possede_pelle:
                     self.add_message("Il vous faut une Pelle pour creuser!", (255, 100, 100))
-                    #self.interaction_message = "Il y a un endroit à creuser, mais il vous faut une Pelle."
-                    #self.message_timer = pygame.time.get_ticks() + 3000
                     return
 
                 elif obj.est_utilise:
                     self.add_message("Cet endroit a déjà été creusé.", (150, 150, 150))
-                    #self.interaction_message = "Cet endroit a déjà été creusé."
-                    #self.message_timer = pygame.time.get_ticks() + 3000
                     return
         
         #Vérifier les objets collectables
@@ -609,14 +712,14 @@ class Game:
         if not collected_something:
             self.add_message("Je n'ai rien trouvé...", (150, 150, 150))
 
-        #self.interaction_message = "Rien d'interactif"
-        #self.message_timer = pygame.time.get_ticks() + 3000
-
 
     def digging(self):
+        
         """
-        Execute l'action de creuser
+        Exécute l'action de creuser si une interaction EndroitACreuser est active,
+        et met à jour l'inventaire en fonction du résultat.
         """
+
         if not self.is_interacting or not isinstance(self.current_interaction_object, EndroitACreuser):
             return 
         
@@ -631,42 +734,23 @@ class Game:
             self.add_message("Erreur: vous n'avez pas de pelle.")
         elif result == "already_used":
             self.add_message("Cet endroit est déjà vide.")
-        else: # Un objet a été trouvé (result est le nom de l'objet)
-            #if result == "cle":
-            #    self.inventaire.modifier_cles(1)
-            #elif result == "gemme":
-            #    self.inventaire.modifier_gemmes(1)
-            #elif result == "or":
-            #    self.inventaire.modifier_or(1)
-            #elif result == "dé":
-            #    self.inventaire.modifier_des(1)
-            #elif result == "pomme":
-            #    self.inventaire.modifier_pas(2)
-            #elif result == "banane":
-            #    self.inventaire.modifier_pas(3)
-            #elif result == "shovel":
-            #    self.inventaire.possede_pelle = True
-            #elif result == "marteau":
-            #    self.inventaire.possede_marteau = True
-            #elif result == "kit de crochetage":
-            #    self.inventaire.possede_kit_crochetage = True
-            #elif result == "détecteur de métaux":
-            #    self.inventaire.possede_detecteur_metaux = True
-            #elif result == "patte de lapin":
-            #    self.inventaire.possede_patte_lapin = True
-
+        else: 
             self.collect_item(result)
         
-        #Reinitialiser l'etat d'interaction
+        #Reinitialiser l'état d'interaction
         self.is_interacting = False
         self.current_interaction_object = None
-        #self.message_timer = pygame.time.get_ticks() + 3000
 
 
     def try_move_player(self, direction):
+
         """
         Tente de déplacer le joueur vers une pièce déjà découverte.
-        (W/A/S/D dans main.py)
+        Déclenche les effets d'entrée de la pièce cible.
+        (W/A/S/D dans main.py pour la sélection, ESPACE pour la validation)
+
+        Args:
+            direction (str): La direction du mouvement ("haut", "bas", "droite", "gauche").
         """
         
         if direction == "droite":
@@ -691,7 +775,7 @@ class Game:
             
             chosen_room = self.manoir_grid[r_cible][c_cible]
             
-            # --- APPLICATION DE L'EFFET D'ENTRÉE POUR LA PREMIÈRE FOIS ---
+            # Application de l'effet d'entrée pour la première fois
             # Vérifier si c'est une pièce à effet d'entrée
             is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
 
@@ -714,6 +798,7 @@ class Game:
 
         # 2. Vérifier si la pièce existe déjà et si la porte est ouverte (non implémenté)
         if self.manoir_grid[r_cible][c_cible] is not None:
+
             # Effectuer le déplacement
             self.current_row, self.current_col = r_cible, c_cible
             self.inventaire.modifier_pas(-1) # Perte d'un pas
@@ -725,8 +810,6 @@ class Game:
                     self.collect_item(item)
             for item in items_to_remove:
                 chosen_room.objets.remove(item)
-            #else:
-                #self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
         
         current_room = self.manoir_grid[self.current_row][self.current_col]
         
@@ -757,15 +840,19 @@ class Game:
         for item in objets_supp:
             chosen_room.objets.remove(item)
 
-        # Verification automatique
+        # Vérification automatique
         self.interactions_rooms(chosen_room)
 
     def check_and_open_door(self, direction):
-        """
-        Tente d'ouvrir une nouvelle porte (ESPACE dans main.py).
-        Déclenche la sélection de pièce si l'ouverture réussit.
-        """
         
+        """
+        Tente d'ouvrir une nouvelle porte. Si l'ouverture réussit (coût/clé payé),
+        cela déclenche la sélection de pièce.
+
+        Args:
+            direction (str): La direction de la porte à ouvrir.
+        """
+
         # 1. Déterminer la position cible
         if direction == "droite":
             dr, dc = 0, 1
@@ -818,9 +905,11 @@ class Game:
             self.start_room_selection(direction)
 
     def use_dice_for_reroll(self):
+        
         """
-        Consomme un dé pour tirer 3 nouvelles options de pièce.
+        Consomme un dé pour tirer 3 nouvelles options de pièce lors de la sélection.
         """
+
         if not self.is_selecting_room:
             self.add_message("Vous ne pouvez utiliser le dé que lors de la sélection de pièce.", (255, 100, 100))
             return
@@ -828,7 +917,6 @@ class Game:
             self.add_message("Erreur: Direction de la porte inconnue pour le reroll.", (255, 0, 0))
             return
         
-        # Check de
         if self.inventaire.des>0:
             self.inventaire.modifier_des(-1)
             self.add_message("Dé utilisé! Nouveau tirage!", (255, 255, 100))
@@ -846,7 +934,7 @@ class Game:
             for room in self.current_room_options:
                 # Utilise la direction de porte sauvegardée lors de l'ouverture initiale
                 self.align_room_with_door(room, self.last_move_dir_str)
-            # --------------------------------------------------------------------
+        
             self.selected_option_index = 0
             
             if not self.current_room_options:
@@ -858,7 +946,13 @@ class Game:
 
 
     def start_room_selection(self, door_direction):
-        """ Déclenche l'état de sélection de pièce avec les options tirées. """
+
+        """ 
+        Déclenche l'état de sélection de pièce avec les options tirées. 
+
+        Args:
+            door_direction (str): La direction dans laquelle la porte a été ouverte.
+        """
         
         # 1. Tirage des 3 NOMS de pièces (rapide grâce au cache)
         options_noms = self.tirer_pieces(nombre_options=3, r_cible=self.target_row)
@@ -883,7 +977,14 @@ class Game:
             self.is_selecting_room = False
         
     def handle_selection_movement(self, key):
-        """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
+        
+        """ 
+        Gère le mouvement dans le menu de sélection de pièce (Flèches Gauche/Droite). 
+
+        Args:
+            key (int): La touche Pygame pressée (K_LEFT ou K_RIGHT).
+        """
+
         if self.is_selecting_room:
             if key == pygame.K_LEFT:
                 self.selected_option_index = (self.selected_option_index - 1) % len(self.current_room_options)
@@ -893,8 +994,13 @@ class Game:
                 self.use_dice_for_reroll()
 
     def handle_door_action(self, direction, screen):
+        
         """
         Gère l'action "ESPACE" : Déplacement si pièce existante, ou Tente d'ouvrir si pièce nouvelle.
+
+        Args:
+            direction (str): La direction sélectionnée par le joueur.
+            screen (pygame.Surface): La surface de dessin.
         """
 
         #Gestion de l'interaction si active
@@ -932,8 +1038,8 @@ class Game:
 
         # 3. Vérifier si la pièce cible existe déjà
         if self.manoir_grid[r_cible][c_cible] is not None:
-            # La pièce existe, on se déplace
-            #self.try_move_player(direction) 
+
+            # La pièce existe, on se déplace 
             self.try_move_player(direction)
 
         else:
@@ -942,7 +1048,13 @@ class Game:
         
 
     def confirm_room_selection(self):
-        """ Valide la pièce sélectionnée et l'ajoute à la grille (Entrée). """
+        
+        """ 
+        Valide la pièce sélectionnée et l'ajoute à la grille (Entrée).
+        Gère le coût en gemmes, l'application des effets (sélection et entrée),
+        et le déplacement du joueur.
+        """
+
         if not self.is_selecting_room:
             return
             
@@ -954,10 +1066,10 @@ class Game:
                 self.inventaire.modifier_gemmes(-chosen_room.cout_gemmes)
                 self.add_message(f"Dépensé {chosen_room.cout_gemmes} gemmes", (255, 200, 100))
             
-            # Ajout de la pièce à l'emplacement cible (défini par check_and_open_door)
+            # Ajout de la pièce à l'emplacement cible
             self.manoir_grid[self.target_row][self.target_col] = chosen_room 
 
-            #APPLICATION DE L'EFFET DE SÉLECTION
+            # Application de l'effet de sélection
             if hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "selection_complete":
                 chosen_room.appliquer_effet(self)
             
@@ -968,10 +1080,11 @@ class Game:
             # Le joueur avance immédiatement dans la nouvelle pièce
             self.current_row, self.current_col = self.target_row, self.target_col
 
-            # APPLICATION DE L'EFFET D'ENTRÉE
+            # Application de l'effet d'entrée
 
             if hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree":
                 print(f"[DEBUG] Application effet entrée pour: {chosen_room.nom}")
+
                 # Chapel s'applique à chaque fois, les autres à la première entrée
                 if chosen_room.nom == "Chapel":
                     chosen_room.appliquer_effet(self)
@@ -1010,7 +1123,7 @@ class Game:
         for item in objets_supp:
             chosen_room.objets.remove(item)
 
-        # Verification automatique
+        # Vérification automatique
         self.interactions_rooms(chosen_room)
 
         self.inventaire.modifier_pas(-1)
@@ -1020,9 +1133,14 @@ class Game:
         self.start_interaction(chosen_room)
     
     def align_room_with_door(self, room: Room, move_dir_str: str):
+        
         """ 
         Fait tourner la pièce jusqu'à ce qu'une porte soit sur le côté requis 
         (opposé à la direction de mouvement).
+
+        Args:
+            room (Room): La pièce à aligner.
+            move_dir_str (str): La direction de mouvement qui a ouvert la porte ("haut", "bas", etc.).
         """
 
         move_dir = DIR_FROM_STR[move_dir_str] 
@@ -1044,14 +1162,20 @@ class Game:
         room.update_image_from_orientation()
     
     def disperser_or_dans_manoir(self, quantite: int = 3):
+        
         """
         Disperse un nombre spécifié de pièces d'or de manière aléatoire
         dans les pièces déjà placées du manoir. (Effet de l'Office)
+
+        Args:
+            quantite (int): Le nombre de pièces d'or à disperser.
         """
+
         pieces_existantes = []
         for r in range(self.grid_height):
             for c in range(self.grid_width):
                 room = self.manoir_grid[r][c]
+
                 # Ne distribuer que dans les pièces qui existent et qui ne sont pas la pièce actuelle
                 if room is not None and (r != self.current_row or c != self.current_col):
                     pieces_existantes.append(room)
@@ -1063,6 +1187,7 @@ class Game:
         import random
 
         for _ in range(quantite):
+
             # Choisir une pièce au hasard parmi celles disponibles
             piece_cible = random.choice(pieces_existantes)
             
@@ -1074,17 +1199,27 @@ class Game:
 
     #Condition de victoire
     def check_for_win_condition(self):
+        
         """
-        Vérifie si le joueur a atteint la condition de victoire (ex: atteindre la rangée 0).
+        Vérifie si le joueur a atteint la condition de victoire (atteindre la rangée 0, colonne 2).
+        
+        Returns:
+            bool: True si la condition de victoire est atteinte, False sinon.
         """
-        if self.current_row == 0 and self.current_col == 2:  #Mettre currenet row à 7 pour tester facilement
+
+        if self.current_row == 0 and self.current_col == 2:
             self.game_won = True
             return True
         
     def animation_victoire(self,screen):
+        
         """
-        Affiche une animation de victoire lorsque le joueur gagne.
+        Affiche une animation de victoire.
+
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         # Exemple simple : un écran de victoire avec un message
         screen.fill((0, 0, 0))  # Fond noir
         victory_text = self.font_large.render("Félicitations! Vous avez gagné!", True, (255, 215, 0))
@@ -1096,9 +1231,14 @@ class Game:
 
     #Condition de défaite
     def check_for_loss_condition(self):
+        
         """
-        Vérifie si le joueur a atteint la condition de défaite (ex: pas restants à 0).
+        Vérifie si le joueur a atteint la condition de défaite (plus de pas).
+        
+        Returns:
+            bool: True si la condition de défaite est atteinte, False sinon.
         """
+
         if self.game_won:
             return False
         elif self.inventaire.pas <= 0:
@@ -1108,9 +1248,14 @@ class Game:
         #sortir du jeu ou redémarrer
 
     def animation_defaite(self,screen):
+        
         """
-        Affiche une animation de défaite lorsque le joueur perd.
+        Affiche une animation de défaite.
+        
+        Args:
+            screen (pygame.Surface): La surface de dessin.
         """
+
         # Exemple simple : un écran de défaite avec un message
         screen.fill((0, 0, 0))  # Fond noir
         defeat_text = self.font_large.render("Vous avez perdu! Réessayez!", True, (255, 0, 0))
@@ -1120,9 +1265,15 @@ class Game:
         pygame.time.delay(5000)  # Affiche pendant 5 secondes
     
     def interactions_rooms (self,room):
+
         """
-        Vérifie automatiquement s'il y a des objets interactifs dans la pièce et affiche un message pour informer le joueur
+        Vérifie automatiquement s'il y a des objets interactifs dans la pièce et 
+        affiche un message pour informer le joueur (ex: "Appuyer C pour creuser").
+
+        Args:
+            room (Room): La pièce actuelle du joueur.
         """
+
         for obj in room.objets :
             if isinstance(obj, Coffre) and not obj.est_utilise:
                 if self.inventaire.possede_marteau:
@@ -1146,9 +1297,12 @@ class Game:
                     return
                 
     def ouvrir_coffre(self):
+        
         """
-        Ouvre un coffre avec marteau ou clé.
+        Ouvre un coffre avec marteau ou clé si l'interaction est active,
+        et met à jour l'inventaire.
         """
+
         if not self.is_interacting or not isinstance(self.current_interaction_object, Coffre):
             return
     

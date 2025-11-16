@@ -8,22 +8,26 @@ from src.mon_projet.objets import (
 )
 
 def random_objects_selection(objets_possibles, probabilites):
+
     """
-    Sélectionne aléatoirement quels objets apparaissent dans une pièce.
+    Sélectionne aléatoirement quels objets apparaissent dans une pièce en 
+    fonction des probabilités données.
 
     Args : 
-        objets_possibles : liste de tous les objets qui peuvent apparaître
-        probabilites : liste des proba (0.0 à 1.0) pour chaque objet
+        objets_possibles (list): Liste de tous les objets qui peuvent apparaître (instances ou str).
+        probabilites (list): Liste des probabilités (0.0 à 1.0) pour chaque objet.
     
     Returns : 
-        liste des objets qui apparaissent réellement 
+        list : Liste des objets qui apparaissent réellement dans la pièce.
 
     """
+
     objets_selectionnes = []
 
     # S'assure que les listes ont la même longueur
     while len(probabilites) < len(objets_possibles):
-        probabilites.append(0.5) # 50% par défaut
+        # utilise 50% par défaut pour les objets sans probabilité spécifiée
+        probabilites.append(0.5) 
 
     for i, objet in enumerate(objets_possibles):
         if random.random() < probabilites[i]:
@@ -33,81 +37,155 @@ def random_objects_selection(objets_possibles, probabilites):
 # Classes (enfants) pour gerer les effets speciaux
 
 class RoomEffetEntree(Room):
+
     """
-    Piece avec un effet qui se declenche quand le joueur y entre
+    Classe parente abstraite pour les pièces avec un effet qui se déclenche 
+    quand le joueur y entre pour la première fois (ou à chaque fois pour certaines)
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.moment_effet = "entree"
 
     def appliquer_effet(self, game_instance):
-        """Applique l'effet à l'inventaire ou à l'état du jeu."""
+
+        """Méthode abstraite. Applique l'effet à l'inventaire ou à l'état du jeu.
+        Doit être implémentée dans les classes enfants.
+
+        Args:
+            game_instance (Game): L'instance actuelle du jeu.
+        
+        """
+
         # Ceci est la méthode abstraite qui sera implémentée dans les classes enfants
         pass
 
 class RoomEffetSelection(Room):
-    """Pièce avec un effet qui se déclenche lorsque la pièce est choisie (ajoutée au manoir)."""
+
+    """
+    Classe parente abstraite pour les pièces avec un effet qui 
+    se déclenche lorsque la pièce est choisie (ajoutée au manoir)
+    par le joueur
+    """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.moment_effet = "selection_complete"
 
     def appliquer_effet(self, game_instance):
+
+        """
+        Méthode abstraite. Applique l'effet à l'inventaire ou à l'état du jeu lors de la sélection.
+        Doit être implémentée dans les classes enfants.
+
+        Args:
+            game_instance (Game): L'instance actuelle du jeu.
+        """
+
         # Ceci est la méthode abstraite qui sera implémentée dans les classes enfants
         pass
 
-#Pieces Speciales
+
+#Pièces Spéciales
+
 class BedroomRoom(RoomEffetEntree):
-    """ Gagne deux pas """
+    
+    """ 
+    Pièce spéciale: Gagne deux pas lors de la première entrée.
+    Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
         game_instance.inventaire.modifier_pas(2)
         print(f"Effet {self.nom} : Gagne 2 pas")
 
 class ChapelRoom(RoomEffetEntree):
-    """Perd 1 pièce d'or."""
+
+    """ 
+    Pièce spéciale: Perd 1 pièce d'or à chaque entrée.
+    Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
+        # Utilise modifier_or, qui gère si le solde devient négatif
         game_instance.inventaire.modifier_or(-1)
         print(f"Effet {self.nom} : Perd 1 pièce d'or")
 
 class NookRoom(RoomEffetEntree):
-    """Gagne 1 clé"""
+
+    """ 
+    Pièce spéciale: Gagne 1 clé lors de la première entrée.
+    Hérite de RoomEffetEntree.
+    """
+    
     def appliquer_effet(self, game_instance):
+
         game_instance.inventaire.modifier_cles(1)
         print(f"Effet {self.nom} : Gagne 1 clé")
 
 class MusicRoom(RoomEffetEntree):
-    """Gagne 2 clés"""
+    
+    """
+    Pièce spéciale: Gagne 2 clés lors de la première entrée.
+    Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
         game_instance.inventaire.modifier_cles(2)
         print(f"Effet {self.nom} : Gagne 2 clés")
 
 class GarageRoom(RoomEffetEntree):
-    """Gagne 3 clés"""
+    
+    """
+    Pièce spéciale: Gagne 3 clés lors de la première entrée.
+    Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
         game_instance.inventaire.modifier_cles(3)
         print(f"Effet {self.nom} : Gagne 3 clés")
 
 class PoolRoom(RoomEffetSelection):
+
     """
-    Ajoute des pieces au catalogue quand elle est selectionnee
+    Pièce spéciale: Ajoute des pièces spécifiques au catalogue
+    lorsqu'elle est sélectionnée. Hérite de RoomEffetSelection.
     """
+
     def appliquer_effet(self, game_instance):
-        # ajoute une piece (sauna, locker room et pump room) au catalogue des pieces
-        pieces_a_ajouter = ["Sauna", "Coat Check"] # a ajouter locker room? pump room?
+
+        # Ajoute des pièces spécifiques au catalogue des pièces
+        pieces_a_ajouter = ["Sauna", "Coat Check"]
         game_instance.ajouter_pieces_au_catalogue(pieces_a_ajouter)
         print(f"Effet {self.nom} : Ajout de {pieces_a_ajouter} au catalogue !")
 
 class MasterBedroom(RoomEffetEntree):
+
     """
-    Gagne +1 pas par piece deja dans le manoir
+    Pièce spéciale: Gagne +1 pas par pièce déjà dans le manoir
+    lors de la première entrée. Hérite de RoomEffetEntree.
     """
+
     def appliquer_effet(self, game_instance):
+
+        # Compte le nombre de pièces placées (non None)
         count_pieces = sum(1 for row in game_instance.manoir_grid for room in row if room is not None)
         game_instance.inventaire.modifier_pas(count_pieces)
         print(f"Effet {self.nom} : Gagne {count_pieces} pas (1 par pièce placée)")
 
 class ChamberOfMirrorsRoom(RoomEffetSelection):
-    """Ajoute une deuxième copie d'une pièce que j'ai déjà au catalogue."""
+    
+    """
+    Pièce spéciale: Ajoute une deuxième copie d'une pièce que
+    j'ai déjà au catalogue. Hérite de RoomEffetSelection.
+    """
+
     def appliquer_effet(self, game_instance):
+
         #choisir une pièce aléatoire déjà disponible et la dupliquer
         if game_instance.pioche_disponible:
             piece_a_dupliquer = random.choice(game_instance.pioche_disponible)
@@ -116,56 +194,101 @@ class ChamberOfMirrorsRoom(RoomEffetSelection):
         else:
             print(f"Effet {self.nom} : Le catalogue est vide, aucun ajout possible.")
 
+
 # Pieces avec effet sur l'aleatoire
 class VerandaRoom(RoomEffetEntree):
-    """ modifie la proba de trouver certains objets"""
+
+    """ 
+    Pièce spéciale: Active le modificateur de chance pour trouver
+    certains objets lors de la première entrée. Hérite de RoomEffetEntree.
+    """
+    
     def appliquer_effet(self, game_instance):
+
         # Active le modificateur de chance pour trouver des objets
         game_instance.modificateur_chance_veranda = True # Variable d'état dans Game
         print(f"Effet {self.nom} : Active le modificateur de chance de trouver des objets.")
 
 class FurnaceRoom(RoomEffetEntree):
-    """ modifie la proba de tirer des pieces rouges"""
+    
+    """ 
+    Pièce spéciale: Active le modificateur de tirage pour les pièces Rouges
+    lors de la première entrée. Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
         # Active le modificateur de tirage pour les pièces Rouges
         game_instance.modificateur_tirage_furnace = True # Variable d'état dans Game
         print(f"Effet {self.nom} : Active le modificateur de tirage pour les pièces Rouges.")
 
 class GreenhouseRoom(RoomEffetEntree):
-    """Modifie la probabilité de tirer des pièces vertes"""
+    
+    """
+    Pièce spéciale: Active le modificateur de tirage pour les pièces Vertes
+    lors de la première entrée. Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
+
         # Active le modificateur de tirage pour les pièces Vertes
         game_instance.modificateur_tirage_greenhouse = True # Variable d'état dans Game
         print(f"Effet {self.nom} : Active le modificateur de tirage pour les pièces Vertes.")
 
 class OfficeRoom(RoomEffetEntree):
-    """Disperse de l'or dans d'autres pièces"""
+    
+    """
+    Pièce spéciale: Disperse de l'or dans d'autres pièces du manoir
+    lors de la première entrée. Hérite de RoomEffetEntree.
+    """
+
     def appliquer_effet(self, game_instance):
         game_instance.disperser_or_dans_manoir(quantite=3) 
         print(f"Effet {self.nom} : 3 pièces d'ors ont été dispersés dans le manoir.")
 
-#Pieces speciales pour la selection
+#Pieces spéciales pour la sélection
 
 class StudyRoom(RoomEffetSelection):
-    """Permet de dépenser des gemmes pour reroll pendant le draft"""
+
+    """
+    Pièce spéciale: Permet de dépenser des gemmes pour reroll pendant le draft
+    lorsqu'elle est sélectionnée. Hérite de RoomEffetSelection.
+    """
+    
     def appliquer_effet(self, game_instance):
+
         game_instance.capacite_reroll_draft_study= True
         print(f"Effet {self.nom} : Active la capacité de reroll du draft.")
 
 class DrawingRoom(RoomEffetSelection):
-    """Permet de tirer de nouvelles options pendant le draft"""
+    
+    """
+    Pièce spéciale: Permet de tirer de nouvelles options pendant le draft
+    lorsqu'elle est sélectionnée. Hérite de RoomEffetSelection.
+    """
+
     def appliquer_effet(self, game_instance):
+
         game_instance.capacite_nouveau_draft_drawing = True
         print(f"Effet {self.nom} : Active la capacité de tirer de nouvelles options de draft.")
 
 class Portail(RoomEffetEntree):
-    """ Salle de téléportation : téléporte le joueur vers une pièce aléatoire
-    et donne +5 pas."""
+    
+    """ 
+    Salle de téléportation : téléporte le joueur vers une pièce aléatoire
+    découverte et donne +5 pas (une seule fois). Hérite de RoomEffetEntree.
+    """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.teleportation_utilisee = False
 
     def appliquer_effet(self, game_instance):
+
+        """
+        Effectue la téléportation et donne le bonus de pas, si non déjà utilisé.
+        """
+
         if self.teleportation_utilisee:
             game_instance.add_message("La magie de téléportation est épuisée...", (150, 150, 150))
             return
@@ -199,16 +322,17 @@ class Portail(RoomEffetEntree):
         self.teleportation_utilisee = True
 
 def creer_piece(type_piece: str) -> Room:
+
     """
-    Pour créer des instances de pièces
+    Crée et configure une instance de Room ou de RoomEnfant selon le type_piece.
     
     Args:
-        type_piece: Le nom/type de la pièce à créer
+        type_piece (str): Le nom/type de la pièce à créer.
         
     Returns:
-        Room: Une instance de Room configurée selon le type
+        Room: Une instance de Room configurée.
     """
-    
+
     classes = {
         "The Pool" : PoolRoom,
         "Master Bedroom" : MasterBedroom,
@@ -227,6 +351,7 @@ def creer_piece(type_piece: str) -> Room:
         "Portail Mystique": Portail,
     }
     
+    # Contenu possible pour les EndroitACreuser
     DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé","boussole magique","boussole magique","boussole magique"]
     classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
 
@@ -240,7 +365,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
             "probabilites": [1.0, 1.0, 1.0],
             "cout_gemmes": 0,
-            #"Couleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/The_Foundation_Icon.png"
         },
         
@@ -250,7 +374,6 @@ def creer_piece(type_piece: str) -> Room:
             "rarete": 0,
             "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 0,
-            #"Couleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Entrance_Hall.PNG"
         },
         
@@ -261,7 +384,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
             "probabilites": [0.5, 0.3, 0.2, 0.2],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Spare_Room.PNG"
         },
         
@@ -272,7 +394,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["dé"],
             "probabilites": [1.0, 0.3],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Nook.PNG"
         },
         
@@ -283,7 +404,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
             "probabilites": [0.5, 0.3, 0.4],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Garage_Icon.png"
         },
         
@@ -294,7 +414,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["sledgehammer"],
             "probabilites": [0.2, 0.4],
             "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Music_Room.PNG"
         },
         
@@ -304,7 +423,6 @@ def creer_piece(type_piece: str) -> Room:
             "rarete": 0,
             "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 1,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Drawing_Room.PNG"
         },
         
@@ -314,7 +432,6 @@ def creer_piece(type_piece: str) -> Room:
             "rarete": 2,
             "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Study.PNG"
         },
         
@@ -325,7 +442,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
             "probabilites": [0.4, 0.5, 0.6, 0.3],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Sauna.PNG"
         },
         
@@ -336,7 +452,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["gemme","gemme","or","or","or","or","or"],
            "probabilites": [0.4, 0.7],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Coat_Check.PNG"
         },
         
@@ -346,7 +461,6 @@ def creer_piece(type_piece: str) -> Room:
             "rarete": 2,
             "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu)], "probabilites": [],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Mail_Room_Icon.png"
         },
 
@@ -357,7 +471,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
             "probabilites": [0.8, 0.7, 0.6],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/The_Pool_Icon.png"
         },
 
@@ -368,7 +481,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
             "probabilites": [0.7, 0.4, 0.3, 0.5],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Chamber_of_mirrors.PNG"
         },
 
@@ -379,7 +491,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
             "probabilites": [0.5, 0.1, 0.4],
             "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Veranda.PNG"
         },
         
@@ -390,7 +501,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
             "probabilites": [0.1, 0.1, 0.1, 0.1, 0.1],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Furnace_Icon.png"
         },
 
@@ -401,7 +511,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu)],
             "probabilites": [0.1, 0.1, 0.1],
             "cout_gemmes": 1,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Greenhouse_Icon.png"
         },
 
@@ -412,7 +521,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
             "probabilites": [0.4, 0.5, 0.6, 0.3],
             "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Office.PNG"
         },
 
@@ -423,7 +531,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
             "probabilites": [0.4, 0.3, 0.2, 0.2, 0.1],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Bedroom.PNG"
         },
 
@@ -434,7 +541,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["gemme","gemme","or","or","or",PasseMuraille()],
            "probabilites": [0.3, 0.3, 0.5, 0.5, 0.5, 1.0],
             "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Chapel_Icon.png"
         },
 
@@ -445,7 +551,6 @@ def creer_piece(type_piece: str) -> Room:
             "objets_possibles": ["dé","dé","gemme","gemme","or","or"],
             "probabilites": [0.5, 0.3, 0.4],
             "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Master_Bedroom.PNG"
         },
         "Portail Mystique": {
@@ -480,7 +585,7 @@ def creer_piece(type_piece: str) -> Room:
     config = pieces_config.get(type_piece)
 
     if not config:
-
+        # Configuration par défaut si le type de pièce est inconnu
         return Room(
             nom=type_piece,
             portes=Porte(1, 1, 1, 1), # Porte par défaut
@@ -498,19 +603,6 @@ def creer_piece(type_piece: str) -> Room:
 
     positions_initiales = config["portes"].positions
     portes_instance = Porte(*positions_initiales)
-    
-    #if config:
-    #    positions_initiales = config["portes"].positions
-    #    portes_instance = Porte(*positions_initiales)
-    
-    # Récupérer la configuration de la pièce
-    #config = pieces_config[type_piece]
-    #positions_initiales = config["portes"].positions
-
-    #if len(positions_initiales) != 4:
-    #    raise ValueError(f"Configuration de porte invalide pour {type_piece} (doit avoir 4 positions).")
-    
-    #portes_instance = Porte(*positions_initiales)
 
     # Créer et retourner l'instance de Room
     return classe_piece(
@@ -518,16 +610,21 @@ def creer_piece(type_piece: str) -> Room:
         portes=portes_instance,
         rarete=config["rarete"], # 0 : CommonPlace ou N\A / 1 : Standard / 2: Unusual / 3 : Rare
         objets=objets_reels,
-        #proba_obj=config["proba_obj"],
         cout_gemmes=config["cout_gemmes"],
-        #couleur=config["couleur"],
         image_path=config["image_path"]
     )
 
 def get_piece(type_piece : str) -> dict:
+    
     """
     Récupère uniquement les métadonnées essentielles d'une pièce 
     (nom, rareté, coût) sans instancier la Room complète ni charger l'image.
+    
+    Args:
+        type_piece (str): Le nom/type de la pièce.
+
+    Returns:
+        dict: Un dictionnaire contenant les métadonnées de la pièce, ou None.
     """
     
     pieces_metadata = {
@@ -559,7 +656,7 @@ def get_piece(type_piece : str) -> dict:
 
     if config:
         rarete = config["rarete"]
-        proba = Proba(rarete)
+        proba = Proba(rarete) # Instancie Proba pour obtenir le poids
         return {
             "nom": type_piece,
             "rarete": rarete,

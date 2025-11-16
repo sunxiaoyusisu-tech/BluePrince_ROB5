@@ -6,68 +6,89 @@ from random import random
 import pygame
 
 class Direction(Enum):
-    """Énumération pour les directions des portes"""
+    
+    """Énumération pour les directions des portes (utilisé pour les index)"""
+
     UP = 0
     DOWN = 1
     RIGHT = 2
     LEFT = 3
 
 class Porte:
+
     """
     Classe représentant les portes d'une pièce
-    
-    Attributs:
-        positions: Liste de 4 entiers [up, down, right, left]
-                  1 = porte présente, 0 = pas de porte
-        niveaux_verrouillage: Liste des niveaux de verrouillage pour chaque porte
-                             0 = déverrouillée, 1 = verrouillée, 2 = double tour
     """
     
     def __init__(self, up, down, right, left):
+
         """
-        Initialise les portes d'une pièce
-        
+        Initialise les portes d'une pièce.
+
         Args:
-            up, down, right, left: 1 si porte présente, 0 sinon
+            up (int): 1 si porte vers le haut, 0 sinon.
+            down (int): 1 si porte vers le bas, 0 sinon.
+            right (int): 1 si porte vers la droite, 0 sinon.
+            left (int): 1 si porte vers la gauche, 0 sinon.
         """
+
         self.positions = [up, down, right, left]  # [up, down, right, left]
         self.niveaux_verrouillage = [0, 0, 0, 0]  # Sera défini lors du placement
         self.franchissement = [False, False, False, False]  # Indique si la porte a été franchie
     
 
     def a_porte(self, direction: Direction) -> bool:
-        """Vérifie si une porte existe dans la direction donnée"""
+        
+        """
+        Vérifie si une porte existe dans la direction donnée.
+
+        Args:
+            direction (Direction): La direction à vérifier (UP, DOWN, RIGHT, LEFT).
+
+        Returns:
+            bool: True si une porte est présente, False sinon.
+        """
+
         return self.positions[direction.value] == 1
     
     def a_ete_franchie(self, direction: Direction) -> bool:
-        """Vérifie si une porte a été franchie (exemple d'utilisation future)"""
+        
+        """
+        Marque une porte comme franchie (méthode de transition).
+        
+        Args:
+            direction (Direction): La direction de la porte franchie.
+        """
+
         self.franchissement[direction.value] = True
         pass
    
     
     def definir_verrouillage(self, direction: Direction, niveau: int):
-        """
-        Définit le niveau de verrouillage d'une porte
         
-        Args:
-            direction: Direction de la porte
-            niveau: 0 (déverrouillée), 1 (verrouillée), 2 (double tour)
         """
+        Définit le niveau de verrouillage d'une porte.
+
+        Args:
+            direction (Direction): Direction de la porte.
+            niveau (int): 0 (déverrouillée), 1 (verrouillée), 2 (double tour).
+        """
+
         if self.a_porte(direction):
             self.niveaux_verrouillage[direction.value] = niveau
 
     def rotate_clockwise(self, quarter_turns:int= 1):
-        """Fait tourner les portes de 90° dans le sens horaire."""
+        
+        """
+        Fait tourner les positions des portes de 90° dans le sens horaire.
+
+        Args:
+            quarter_turns (int): Nombre de rotations de 90° (par défaut 1).
+        """
+
         for _ in range(quarter_turns):
             up,down,right,left =self.positions
             self.positions = [left,right,up,down]
-#class CouleurPiece(Enum):
-#    JAUNE = "jaune"       # magasins
-#    VERTE = "verte"       # jardins d’intérieur
-#    VIOLETTE = "violette" # chambres (rendre des pas)
-#    ORANGE = "orange"     # couloirs (souvent beaucoup de portes)
-#    ROUGE = "rouge"       # effets indésirables
-#    BLEUE = "bleue"       # communes, variées
 
 class OutilCreusage(Enum):
     PELLE = auto()             # Shovel
