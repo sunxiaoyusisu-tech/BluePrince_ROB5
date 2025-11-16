@@ -132,6 +132,45 @@ class DrawingRoom(RoomEffetSelection):
         game_instance.capacite_nouveau_draft_drawing = True
         print(f"Effet {self.nom} : Active la capacité de tirer de nouvelles options de draft.")
 
+class Portail(RoomEffetEntree):
+    """ Salle de téléportation"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.teleportation_utilisee = False
+
+    def appliquer_effet(self, game_instance):
+        if self.teleportation_utilisee:
+            game_instance.add_message("La magie de téléportation est épuisée...", (150, 150, 150))
+            return
+
+        pieces_decouvertes = []
+        current_pos = (game_instance.current_row, game_instance.current_col)
+        
+        # Trouver toutes les pièces découvertes (sauf celle actuelle)
+        for row in range(game_instance.grid_height):
+            for col in range(game_instance.grid_width):
+                # La pièce doit exister (non None) et ne pas être la pièce actuelle
+                if game_instance.manoir_grid[row][col] is not None and (row, col) != current_pos:
+                    pieces_decouvertes.append((row, col))
+        
+        if not pieces_decouvertes:
+            game_instance.add_message("Pas d'autre destination pour la téléportation!", (255, 100, 100))
+            return
+            
+        # Choisir une destination aléatoire
+        nouvelle_position = random.choice(pieces_decouvertes)
+
+        #Effectuer la téléportation et donner le bonus
+        game_instance.current_row = nouvelle_position[0]
+        game_instance.current_col = nouvelle_position[1]
+        game_instance.inventaire.modifier_pas(5)
+
+        destination = game_instance.manoir_grid[nouvelle_position[0]][nouvelle_position[1]]
+        game_instance.add_message("Téléportation vers {destination.nom} (+5 pas)",(255,215,0))
+
+        # Marquer comme utilisé
+        self.teleportation_utilisee = True
+
 def creer_piece(type_piece: str) -> Room:
     """
     Pour créer des instances de pièces
@@ -158,9 +197,10 @@ def creer_piece(type_piece: str) -> Room:
         "Office": OfficeRoom,
         "Study": StudyRoom,
         "Drawing Room": DrawingRoom,
+        "Portail Mystique": Portail,
     }
     
-    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé"]
+    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé","boussole magique","boussole magique","boussole magique"]
     classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
 
 
@@ -385,6 +425,14 @@ def creer_piece(type_piece: str) -> Room:
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Master_Bedroom.PNG"
         },
+        "Portail Mystique": {
+            "nom": "Portail Mystique",
+            "portes": Porte(1, 1, 1, 1),
+            "rarete": 3,
+            "objets": ["gemme"],
+            "cout_gemmes": 2,
+            "image_path": "Rooms/Portail.PNG" 
+        },
 
     }
 
@@ -420,14 +468,16 @@ def get_piece(type_piece : str) -> dict:
     Récupère uniquement les métadonnées essentielles d'une pièce 
     (nom, rareté, coût) sans instancier la Room complète ni charger l'image.
     """
+
+    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé","boussole magique","boussole magique","boussole magique"]
+
     # Dictionnaire de configuration des pièces
     pieces_config = {
         "The Foundation": {
             "nom": "The Foundation",
             "portes": Porte(0, 1, 1, 1),  
             "rarete": 3,
-            "objets": [],
-            # 2-5 dig spots
+            "objets": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"Couleur":CouleurPiece.BLEUE,
@@ -449,7 +499,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Spare Room",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 0,
-            "objets": ["cle","cle","shovel","sledgehammer"],
+            "objets": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -471,7 +521,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Garage",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["shovel","metal detector","sledgehammer"],
+            "objets": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
             #"proba_obj": [1.0,1.0,1.0],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -515,7 +565,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Sauna",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or"],
+            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -548,8 +598,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "The pool",
             "portes": Porte(0, 1, 1, 1),
             "rarete": 1,
-            "objets": [],
-            #between 2 and 5 Dig Spots (2,3 commonly)
+            "objets": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -560,7 +609,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Chamber of mirrors",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["fruit","fruit","fruit","fruit","cle","cle","cle","cle","gemme","gemme","gemme","gemme","or","or","or","or"],
+            "objets": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -571,8 +620,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Veranda",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 2,
-            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
-            #2-4 dig spots
+            "objets": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
@@ -592,9 +640,9 @@ def get_piece(type_piece : str) -> dict:
 
         "Greenhouse": {
             "nom": "Greenhouse",
-            "portes": Porte(1, 0, 0, 0),
+            "portes": Porte(0, 1, 0, 0),
             "rarete": 1,
-            "objets": ["watering can","metal detector","shovel","sledgehammer"],
+            "objets": ["metal detector","shovel","sledgehammer"],
             #"proba_obj": [],
             "cout_gemmes": 1,
             #"ouleur":CouleurPiece.BLEUE,
@@ -605,7 +653,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Office",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 1,
-            "objets": ["pomme","dé","dé","or","or","or"],
+            "objets": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
@@ -616,7 +664,7 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Bedroom",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 0,
-            "objets": ["pomme","dé","cle","gemme","or","or","or"],
+            "objets": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -638,11 +686,19 @@ def get_piece(type_piece : str) -> dict:
             "nom": "Master Bedroom",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["dé","dé","cle","gemme","gemme","or","or","or","or"],
+            "objets": ["dé","dé","gemme","gemme","or","or"],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Master_Bedroom.PNG"
+        },
+        "Portail Mystique": {
+            "nom": "Portail Mystique",
+            "portes": Porte(1, 1, 1, 1),
+            "rarete": 3,
+            "objets": ["gemme"],
+            "cout_gemmes": 2,
+            "image_path": "Rooms/Portail.PNG" 
         },
 
     }

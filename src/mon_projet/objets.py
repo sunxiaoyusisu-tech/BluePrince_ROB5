@@ -78,6 +78,60 @@ class KitCrochetage(ObjetPermanent):
     def __init__(self):
         super().__init__("Kit de crochetage")
 
+class BoussoleMagique(ObjetPermanent):
+    """
+    Objet permanent qui révèle la direction optimale vers l'Antechamber 
+    """
+    def __init__(self):
+        super().__init__("Boussole Magique")
+
+    def utiliser(self, joueur : 'Joueur'):
+        print(f"L'objet {self.nom} est un objet passif")
+        pass
+
+        # Direction optimale vers l'Antechamber
+        #current_row = game.current_row
+        #current_col = game.current_col
+
+        # Position de l'Antechamber
+        #target_row = 0
+        #target_col = 2
+
+        #direction_optimale = []
+
+        #Direction verticale
+        #if current_row > target_row:
+         #   direction_optimale.append('haut')
+        #elif current_row < target_row :
+         #   direction_optimale.append('bas')
+
+        #Direction horizontale
+        #if current_col > target_col : 
+        #    direction_optimale.append('gauche')
+        #elif current_col < target_col :
+        #    direction_optimale.append('droite')
+        
+        # Analyse des portes adjacentes
+        #current_room = game.manoir_grid[current_row][current_col]
+        #infos_portes = {}
+        
+        #if current_room and current_room.portes:
+         #   directions = ["haut", "bas", "droite", "gauche"]
+          #  for i, direction in enumerate(directions):
+           #     if current_room.portes.positions[i] == 1:
+            #        niveau = current_room.portes.niveaux_verrouillage[i]
+             #       infos_portes[direction] = niveau
+       # return {
+        #    'direction optimale' : direction_optimale,
+         #   'infos_portes' : infos_portes,
+         #   'distance_restante' : abs(current_row - target_row) + abs(current_col - target_col)
+        #}
+    
+    # Ajouter à la classe Inventaire
+    #def ajouter_boussole_magique_inventaire(inventaire):
+     #   """Extension pour l'inventaire - à ajouter dans inventaire.py"""
+      #  inventaire.possede_boussole_magique = False
+
 #Objets Consommables (Nourriture)
 class Pomme(ObjetConsommable):
     def __init__(self):
@@ -190,6 +244,7 @@ class Coffre(ObjetInteractif):
     def utiliser(self, game):
         """ Implémentation pour la méthode abstraite"""
         pass
+
     def ouvrir_coffre(self,game)->str:
         """
         Ouvre le coffre et retourne le contenu obtenu aléatoirement
@@ -228,6 +283,20 @@ class Coffre(ObjetInteractif):
             ("banane",0.05),            # 5% - 1 banane (+3 pas)
             ("rien", 0.07)              # 7% - rien
         ]
+
+        # Effet de la boussole 
+        if game.inventaire.possede_boussole_magique:
+            print("Boussole Magique activée! Augmentation de la chance de Clés.")
+            coffre_contenu = [
+                ("or", 0.20),               # 20%
+                ("or", 0.10),               # 10%
+                ("gemme", 0.20),            # 20%
+                ("cle", 0.25),              # 25% (AUGMENTÉ)
+                ("dé", 0.10),               # 10%
+                ("pomme", 0.08),            # 8%
+                ("banane", 0.05),           # 5%
+                ("rien", 0.02)              # 2% (RÉDUIT)
+            ]
 
         # Tirer un objet selon les probabilités
         objets = [item[0] for item in coffre_contenu]
