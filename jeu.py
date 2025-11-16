@@ -119,6 +119,9 @@ class Game:
         self.target_row = 0
         self.target_col = 0
         self.last_move_dir_str = None
+
+        # État de victoire/défaite
+        self.game_won = False
     
     #Methodes pour les messages
     def add_message(self, message:str,color=(255,255,100)):
@@ -503,7 +506,7 @@ class Game:
             current_room.objets.remove(item)
         
         if not collected_something:
-            self.add_message("Rien d'interactif ici.", (150, 150, 150))
+            self.add_message("Je n'ai rien trouvé...", (150, 150, 150))
 
         #self.interaction_message = "Rien d'interactif"
         #self.message_timer = pygame.time.get_ticks() + 3000
@@ -942,9 +945,50 @@ class Game:
 
         self.add_message(f"{quantite} pièces d'or dispersées dans le manoir!", (255, 215, 0))
 
-    #pour mettre à jour la map quand on choisit une salle
-    def update(self):
-        pass
+    #Condition de victoire
+    def check_for_win_condition(self):
+        """
+        Vérifie si le joueur a atteint la condition de victoire (ex: atteindre la rangée 0).
+        """
+        if self.current_row == 0 and self.current_col == 2:  #Mettre currenet row à 7 pour tester facilement
+            self.game_won = True
+            return True
+        
+    def animation_victoire(self,screen):
+        """
+        Affiche une animation de victoire lorsque le joueur gagne.
+        """
+        # Exemple simple : un écran de victoire avec un message
+        screen.fill((0, 0, 0))  # Fond noir
+        victory_text = self.font_large.render("Félicitations! Vous avez gagné!", True, (255, 215, 0))
+        screen.blit(victory_text, (screen.get_width() // 2 - victory_text.get_width() // 2,
+                                   screen.get_height() // 2 - victory_text.get_height() // 2))
+        pygame.display.flip()
+        pygame.time.delay(5000)  # Affiche pendant 5 secondes
 
+
+    #Condition de défaite
+    def check_for_loss_condition(self):
+        """
+        Vérifie si le joueur a atteint la condition de défaite (ex: pas restants à 0).
+        """
+        if self.game_won:
+            return False
+        elif self.inventaire.pas <= 0:
+            return True
+        elif self.inventaire.cles <= 0 and not self.is_selecting_room:
+            return True
+        #sortir du jeu ou redémarrer
+
+    def animation_defaite(self,screen):
+        """
+        Affiche une animation de défaite lorsque le joueur perd.
+        """
+        # Exemple simple : un écran de défaite avec un message
+        screen.fill((0, 0, 0))  # Fond noir
+        defeat_text = self.font_large.render("Vous avez perdu! Réessayez!", True, (255, 0, 0))
+        screen.blit(defeat_text, (screen.get_width() // 2 - defeat_text.get_width() // 2,
+                                   screen.get_height() // 2 - defeat_text.get_height() // 2))
+        pygame.display.flip()
+        pygame.time.delay(5000)  # Affiche pendant 5 secondes
     
-
