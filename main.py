@@ -49,11 +49,16 @@ while running:
     #Appliquer l'image du joueur
     screen.blit(game.player.pion,game.player.rect)
 
+    # Vérifier la condition de victoire
+    if game.check_for_win_condition():
+        game.animation_victoire(screen)
+
+    if game.check_for_loss_condition():
+        game.animation_defaite(screen)
+
     #mettre à jour la fenetre
     pygame.display.flip()
-
-    #initialisation de la pièce dans laquelle on est
-    #room = entrance_room
+    
 
     # Ferme la fenetre si le joueur clique sur croix
     for event in pygame.event.get():
@@ -132,5 +137,6 @@ while running:
                 #elif event.key == pygame.K_RETURN:
                     # Tenter de se déplacer dans la direction courante
                  #   game.try_move_player(direction,screen)
+            
 
-game.update()
+
