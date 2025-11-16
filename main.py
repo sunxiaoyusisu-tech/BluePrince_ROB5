@@ -119,7 +119,15 @@ while running:
                     
                     # Nouvelle logique : Vérifier si on peut se déplacer OU ouvrir une porte
                     game.handle_door_action(direction, screen)
-                    
+
+                # ENTRÉE pour interagir avec la case actuelle (Creuser / Ramasser)
+                elif event.key == pygame.K_RETURN:
+                    # Récupérer la pièce actuelle
+                    current_room = game.manoir_grid[game.current_row][game.current_col]
+                    if current_room:
+                        # Tenter de commencer une interaction
+                        game.start_interaction(current_room)
+
                 # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
                 #elif event.key == pygame.K_RETURN:
                     # Tenter de se déplacer dans la direction courante

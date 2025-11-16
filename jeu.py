@@ -506,11 +506,11 @@ class Game:
         dig_spot: EndroitACreuser = self.current_interaction_object
         
         # Appeler la méthode pour effectuer le creusage
-        result = dig_spot.effectuer_creusage(self.player)
+        result = dig_spot.effectuer_creusage(self)
 
-        if result == "nothing":
+        if result == "rien":
             self.add_message("Vous creusez... et ne trouvez rien.")
-        elif result == "no_shovel":
+        elif result == "pas de pelle":
             self.add_message("Erreur: vous n'avez pas de pelle.")
         elif result == "already_used":
             self.add_message("Cet endroit est déjà vide.")
@@ -538,7 +538,7 @@ class Game:
             #elif result == "patte de lapin":
             #    self.inventaire.possede_patte_lapin = True
 
-            self._collect_item(result)
+            self.collect_item(result)
         
         #Reinitialiser l'etat d'interaction
         self.is_interacting = False
@@ -740,9 +740,9 @@ class Game:
     def handle_selection_movement(self, key):
         """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
         if self.is_selecting_room:
-            if key == pygame.K_UP:
+            if key == pygame.K_LEFT:
                 self.selected_option_index = (self.selected_option_index - 1) % len(self.current_room_options)
-            elif key == pygame.K_DOWN:
+            elif key == pygame.K_RIGHT:
                 self.selected_option_index = (self.selected_option_index + 1) % len(self.current_room_options)
 
     def handle_door_action(self, direction, screen):
