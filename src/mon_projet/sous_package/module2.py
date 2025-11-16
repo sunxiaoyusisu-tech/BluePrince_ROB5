@@ -332,7 +332,7 @@ def creer_piece(type_piece: str) -> Room:
 
         "Greenhouse": {
             "nom": "Greenhouse",
-            "portes": Porte(1, 0, 0, 0),
+            "portes": Porte(0, 1, 0, 0),
             "rarete": 1,
             "objets": ["watering can","metal detector","shovel","sledgehammer"],
             #"proba_obj": [],
