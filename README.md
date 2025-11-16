@@ -26,7 +26,7 @@ Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose 
 ## Auteurs 
 sunxiaoyusisu-tech sur github : Xiaoyu SUN, numéro étudiant : 
 ChloeSalameh sur github : Chloé SALAMEH, numéro étudiant : 21211219
-Batmaaaan-4848 : Léa BOUBLIL, numéro étudiant : 
+Batmaaaan-4848 sur github : Léa BOUBLIL, numéro étudiant : 21226914
 
 ## Lancement
 Prérequis
