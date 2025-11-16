@@ -101,7 +101,6 @@ class Game:
         self.modificateur_chance_veranda = False
         self.modificateur_tirage_furnace = False
         self.modificateur_tirage_greenhouse = False
-        self.modificateur_chance_maid = False
 
         # Initialisation du Font pour l'UI
         pygame.font.init()
@@ -168,7 +167,6 @@ class Game:
             "kit de crochetage": ("Trouvé un kit de crochetage!", lambda: setattr(self.inventaire, 'possede_kit_crochetage', True)),
             "metal detector": ("Trouvé Détecteur de Métaux!", lambda: setattr(self.inventaire, 'possede_detecteur_metaux', True)),
             "patte de lapin": ("Trouvé Patte de Lapin!", lambda: setattr(self.inventaire, 'possede_patte_lapin', True)),
-            "boussole magique": ("Trouvé Boussole Magique!", lambda: setattr(self.inventaire, 'possede_boussole_magique', True)),
         }
 
         if item_name in item_effects:
@@ -177,78 +175,15 @@ class Game:
             self.add_message(message,(100,255,100))
         else:
             self.add_message(f"Trouvé {item_name}", (200, 200, 100))
-    
-    def appliquer_chance_bonus(self, piece):
-        """
-        Ajoute des objets bonus si le joueur est chanceux.
-        Représente le 'if you're lucky' du wiki Blue Prince.
-        """
-        # Ne pas appliquer si la pièce a déjà été visitée (sauf effet Chapel qui est géré ailleurs)
-        if piece.visitee:
-            return
-        # Calculer la chance de base d'obtenir un objet bonus
-        chance_base = 0.1 # 10% de base
-        
-        # Modificateurs de chance
-        if self.inventaire.possede_patte_lapin:
-            chance_base += 0.20 # +20% avec patte de lapin [cite: 57]
-            print("Patte de lapin active! Chance augmentée.")
-            
-        if self.modificateur_chance_veranda: # Veranda augmente la chance [cite: 143]
-            chance_base += 0.15 
-        
-        if self.inventaire.possede_detecteur_metaux: # Détecteur augmente la chance de métaux [cite: 56]
-            chance_base += 0.10
-        
-        # Tirage aléatoire
-        if random.random() < chance_base:
-            
-            # Table des objets bonus possibles avec leurs probabilités
-            bonus_possibles = [
-                ("pomme", 0.25),      # 25% - Nourriture commune
-                ("banane", 0.20),     # 20% - Nourriture commune
-                ("cle", 0.15),        # 15% - Clé
-                ("or", 0.15),         # 15% - Or
-                ("gemme", 0.10),      # 10% - Gemme
-                ("dé", 0.08),         # 8% - Dé [cite: 51]
-                ("gateau", 0.05),     # 5% - Gâteau (+10 pas) [cite: 74]
-                ("boussole magique", 0.02) # 2% - Très rare
-            ]
-            
-            # Si patte de lapin, ajouter une chance pour les objets permanents
-            if self.inventaire.possede_patte_lapin:
-                bonus_possibles.extend([
-                    ("shovel", 0.005),          # 0.5% - Pelle [cite: 53]
-                    ("sledgehammer", 0.005),    # 0.5% - Marteau [cite: 54]
-                    ("kit de crochetage", 0.003) # 0.3% - Kit [cite: 55]
-                ])
-            
-            # Tirer un objet bonus
-            objets = [item[0] for item in bonus_possibles]
-            probas = [item[1] for item in bonus_possibles]
-            
-            # Normaliser les probabilités
-            total_probas = sum(probas)
-            probas_normalisees = [p/total_probas for p in probas]
-            
-            objet_bonus = random.choices(objets, weights=probas_normalisees, k=1)[0]
-            
-            # Ajouter l'objet à la pièce
-            piece.objets.append(objet_bonus)
-            
-            # Message de confirmation
-            self.add_message(f"Chance! Vous trouvez : {objet_bonus}!", (255, 215, 0))
-            print(f"Objet bonus trouvé : {objet_bonus}")
 
     # Gestion du catalogue et de la pioche
     
     def tous_les_modeles(self):
         """ Retourne le nom des pieces disponibles """
-        return ["The Foundation", "Entrance Hall", "Spare Room", "Nook", "Garage", "Music Room", 
+        return ["The Foundation","GiftShop", "GiftShop","GiftShop", "Entrance Hall", "Spare Room", "Nook", "Garage", "Music Room", 
                 "Drawing Room", "Study", "Sauna", "Coat Check", "Mail Room", 
                 "The pool", "Chamber of mirrors", "Veranda", "Furnace", 
-                "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom", "Portail Mystique", "Portail Mystique","The pool",
-                "The pool","Chapel","Chapel","Drawing Room"]
+                "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom", "Portail Mystique", "Portail Mystique"]
     
     def initialiser_pioche(self):
         """ Liste initiale des noms de pièces """
@@ -312,89 +247,7 @@ class Game:
             
         return options
     
-    def calculer_boussole(self):
-        """ Calcule les infos de la boussole"""
-        
-        # Direction optimale vers l'Antechamber
-        current_row = self.current_row
-        current_col = self.current_col
 
-        # Position de l'Antechamber
-        target_row = 0
-        target_col = 2
-
-        direction_optimale = []
-
-        #Direction verticale
-        if current_row > target_row:
-            direction_optimale.append('haut')
-        elif current_row < target_row :
-            direction_optimale.append('bas')
-
-        #Direction horizontale
-        if current_col > target_col : 
-            direction_optimale.append('gauche')
-        elif current_col < target_col :
-            direction_optimale.append('droite')
-        
-        # Analyse des portes adjacentes
-        current_room = self.manoir_grid[current_row][current_col]
-        infos_portes = {}
-        
-        if current_room and current_room.portes:
-            directions = ["haut", "bas", "droite", "gauche"]
-            for i, direction in enumerate(directions):
-                if current_room.portes.positions[i] == 1:
-                    niveau = current_room.portes.niveaux_verrouillage[i]
-                    infos_portes[direction] = niveau
-        return {
-            'direction optimale' : direction_optimale,
-            'infos_portes' : infos_portes,
-            'distance_restante' : abs(current_row - target_row) + abs(current_col - target_col)
-        }
-    
-    def draw_boussole_ui(self,screen,x=1050, y=300):
-        """ Dessine l'interface de la boussole magique """
-        if not self.inventaire.possede_boussole_magique:
-            return
-        
-        infos = self.calculer_boussole()
-    
-        font = self.font_small # Utiliser la police existante
-    
-        # Cadre de la boussole
-        pygame.draw.rect(screen, self.DARK_BLUE, (x - 5, y - 5, 200, 150))
-        pygame.draw.rect(screen, (255, 215, 0), (x - 5, y - 5, 200, 150), 1)
-
-        # Titre
-        titre = self.font_medium.render("Boussole Magique", True, (255, 215, 0))
-        screen.blit(titre, (x, y))
-    
-        # Direction optimale
-        y_offset = 30
-        if infos["direction_optimale"]:
-            dir_text = " - ".join([d.upper() for d in infos["direction_optimale"]])
-            texte = font.render(f"Optimal: {dir_text}", True, (100, 255, 100))
-            screen.blit(texte, (x, y + y_offset))
-            y_offset += 20
-        
-        # Distance restante
-        distance_texte = font.render(f"Distance: {infos['distance_restante']} cases", True, (200, 200, 200))
-        screen.blit(distance_texte, (x, y + y_offset))
-        y_offset += 25
-    
-        # Infos sur les portes
-        if infos["infos_portes"]:
-            portes_texte = font.render("Portes:", True, (200, 200, 200))
-            screen.blit(portes_texte, (x, y + y_offset))
-            y_offset += 20
-        
-        for direction, niveau in infos["infos_portes"].items():
-            symbole = "🔓" if niveau == 0 else "🔒" if niveau == 1 else "🔐"
-            couleur = (100, 255, 100) if niveau == 0 else (255, 255, 100) if niveau == 1 else (255, 100, 100)
-            texte = font.render(f"  {direction}: {symbole}", True, couleur)
-            screen.blit(texte, (x, y + y_offset))
-            y_offset += 20
 
     
     def draw_manoir_grid(self,screen):
@@ -518,7 +371,6 @@ class Game:
         ("Kit de crochetage", self.inventaire.possede_kit_crochetage),
         ("Détecteur de métaux", self.inventaire.possede_detecteur_metaux),
         ("Patte de lapin", self.inventaire.possede_patte_lapin),
-        ("Boussole Magique", self.inventaire.possede_boussole_magique)
         ]
 
         # Dessiner la liste des objets permanents
@@ -543,7 +395,6 @@ class Game:
             none_text = self.font_medium.render("- Aucun", True, (100, 100, 100))
             screen.blit(none_text, (x_pos + 10, ui_y + hauteur_ligne))
 
-        self.draw_boussole_ui(screen)
 
     def draw_room(self,screen):
         """
@@ -779,10 +630,6 @@ class Game:
         if 0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width and self.manoir_grid[r_cible][c_cible] is not None:
             
             chosen_room = self.manoir_grid[r_cible][c_cible]
-
-            if not chosen_room.visitee:
-                # Appliquer la chance bonus (génération d'objets)
-                self.appliquer_chance_bonus(chosen_room)
             
             # --- APPLICATION DE L'EFFET D'ENTRÉE POUR LA PREMIÈRE FOIS ---
             # Vérifier si c'est une pièce à effet d'entrée
@@ -1050,9 +897,6 @@ class Game:
             
             # Le joueur avance immédiatement dans la nouvelle pièce
             self.current_row, self.current_col = self.target_row, self.target_col
-
-            # Appliquer la chance bonus (génération d'objets)
-            self.appliquer_chance_bonus(chosen_room)
 
             # APPLICATION DE L'EFFET D'ENTRÉE
 
