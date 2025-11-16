@@ -96,7 +96,8 @@ while running:
                 elif event.key == pygame.K_RETURN:
                     game.confirm_room_selection()
 
-                    
+                elif event.key == pygame.K_r: 
+                    game.use_dice_for_reroll()
             # CONTRÔLES DE JEU (Mouvement et Interaction)
             else:
                 # W/A/S/D pour sélectionner la direction de la porte/du mouvement
