@@ -662,17 +662,29 @@ class Game:
             if self.inventaire.possede_marteau:
                 self.is_interacting = True
                 self.current_interaction_object = obj
-                self.interaction_message = "Ouvrir le coffre avec le marteau (gratuit) ?"
+                # Mise à jour du message d'interaction
+                if self.inventaire.possede_marteau:
+                    self.interaction_message = "Ouvrir le coffre avec le marteau (gratuit) ?"
+                else:
+                    self.interaction_message = "Ouvrir le coffre avec une clé (coût: 1 clé) ?"
+                    
                 self.message_timer = pygame.time.get_ticks() + 10000
                 return
-            elif self.inventaire.cles > 0 :
-                self.is_interacting = True
-                self.current_interaction_object = obj
-                self.interaction_message = "Ouvrir le coffre avec une clé (coût: 1 clé) ?"
-                self.message_timer = pygame.time.get_ticks() + 10000
-                return
+
+                #self.interaction_message = "Ouvrir le coffre avec le marteau (gratuit) ?"
+                #self.message_timer = pygame.time.get_ticks() + 10000
+                #return
+            #elif self.inventaire.cles > 0 :
+             #   self.is_interacting = True
+              #  self.current_interaction_object = obj
+               # self.interaction_message = "Ouvrir le coffre avec une clé (coût: 1 clé) ?"
+                #self.message_timer = pygame.time.get_ticks() + 10000
+                #return
+            #else:
+             #   self.add_message("Besoin d'un marteau!", (255, 100, 100))
+              #  return
             else:
-                self.add_message("Besoin d'un marteau!", (255, 100, 100))
+                self.add_message("Besoin d'un marteau ou d'une clé!", (255, 100, 100))
                 return
 
         #Trouver un objet interactif (EndroitACreuser)
@@ -1277,10 +1289,10 @@ class Game:
         for obj in room.objets :
             if isinstance(obj, Coffre) and not obj.est_utilise:
                 if self.inventaire.possede_marteau:
-                    self.add_message("Coffre détecté! Appuyer sur O pour ouvrir (Marteau: gratuit)", (255, 215, 0))
+                    self.add_message("Coffre détecté!", (255, 215, 0))
                     return
                 elif self.inventaire.cles > 0:
-                    self.add_message("Coffre détecté! Appuyer sur O pour ouvrir (Clé: -1)", (255, 215, 0))
+                    self.add_message("Coffre détecté!", (255, 215, 0))
                     return
                 else:
                     self.add_message("Coffre verrouillé (besoin clé ou marteau)", (200, 100, 100))

@@ -107,10 +107,10 @@ while running:
                         game.digging()
                     elif isinstance(game.current_interaction_object, Coffre):
                         game.ouvrir_coffre()
-                    elif isinstance(game.current_interaction_object, Magasin):
-                        obj.selection_item()
-                        if event.key == pygame.K_RETURN:
-                            obj.confirm_purchase()
+                    #elif isinstance(game.current_interaction_object, Magasin):
+                     #   obj.selection_item()
+                      #  if event.key == pygame.K_RETURN:
+                       #     obj.confirm_purchase()
                             
 
                 elif event.key == pygame.K_ESCAPE : 
@@ -173,12 +173,41 @@ while running:
                 elif event.key == pygame.K_o:
                     current_room = game.manoir_grid[game.current_row][game.current_col]
                     if current_room:
-                        #Chercher un coffre dans la piece
+
+                        coffre_trouve = False
+
+                        # Chercher le premier coffre non utilisé pour interagir
+                        #for obj in current_room.objets:
+                            #if isinstance(obj,Coffre) and not obj.est_utilise:
+                                # Assignation de l'objet pour qu'il soit référencé par game.ouvrir_coffre()
+                                #game.current_interaction_object = obj
+                                #coffre_trouve = True
+                                #break # On a trouvé le coffre, on sort de la boucle d'objets
                         for obj in current_room.objets:
-                            if isinstance(obj,Coffre):
+                            if isinstance(obj, Coffre) and not obj.est_utilise:
                                 game.current_interaction_object = obj
-                                # Lancer la vérification (où le message est créé si les outils sont là)
-                                game.start_interaction_manual_prompt(obj) 
+                                game.is_interacting = True
+                                coffre_trouve = True
                                 break
+                                
+
+                        # 2. Si un coffre non utilisé a été trouvé, on tente de l'ouvrir.
+                        if coffre_trouve:
+                            
+                            # La vérification des outils est centralisée dans ouvrir_coffre()
+                            # Cette méthode gère l'affichage des messages d'erreur si les outils manquent.
+                            game.ouvrir_coffre()
+                            
+                        else:
+                            # Afficher un message si aucun coffre non utilisé n'est trouvé
+                            game.add_message("Je n'ai pas trouvé de coffre à ouvrir.", (150, 150, 150))
+
+                                # Appelle la méthode qui vérifie les outils et active is_interacting
+                                # si l'ouverture est possible
+                                #game.start_interaction(current_room) 
+                                #break # Sortir après avoir trouvé un coffre à interagir
+                        #else:
+                            # Si la boucle se termine sans break (aucun coffre non utilisé)
+                         #   game.add_message("Je n'ai pas trouvé de coffre à ouvrir.", (150, 150, 150))
 
 

@@ -49,5 +49,5 @@ python main.py
 4. R : (Pendant la sélection) Utiliser un Dé pour relancer les 3 options de pièce.
 5. ESC : Quitter le jeu ou annuler une interaction.
 6. C : Interagir avec la pièce actuelle pour Creuser.
-7. O : Interagir avec la pièce actuelle pour Ouvrir un coffre.
-8. F : Traverser un mur.
+7. F : Traverser un mur.
+8. ENTER : pour choisir une pièce ou ouvrir un coffre
