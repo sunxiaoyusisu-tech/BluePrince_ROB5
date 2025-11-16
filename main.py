@@ -90,7 +90,7 @@ while running:
 
                 # Flèches UP/DOWN pour naviguer, RETURN (Entrée) pour confirmer
 
-                if event.key in [pygame.K_UP, pygame.K_DOWN]:
+                if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
                     game.handle_selection_movement(event.key)
 
                 elif event.key == pygame.K_RETURN:
