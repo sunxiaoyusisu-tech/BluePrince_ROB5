@@ -429,7 +429,9 @@ class Game:
             cost_text = self.font_small.render(f"{room.cout_gemmes} Gemmes", True, (200, 200, 200))
             screen.blit(cost_text, (x_img_pos + image_size + 10, y_pos + 40))
             
-            #y_pos += 200 # Espacement entre les options
+            realance_text = self.font_medium.render("Relancer (R)", True, (250, 250, 0))
+            screen.blit(realance_text, (x + 600, y))
+            #y_pos += 200s options # Espacement entre le
     
     def draw_interaction_prompt(self,screen) : 
         """
@@ -618,8 +620,8 @@ class Game:
                     self.collect_item(item)
             for item in items_to_remove:
                 chosen_room.objets.remove(item)
-            #else:
-               #self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
+            else:
+                self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
         
         current_room = self.manoir_grid[self.current_row][self.current_col]
         
@@ -754,6 +756,8 @@ class Game:
                 self.selected_option_index = (self.selected_option_index - 1) % len(self.current_room_options)
             elif key == pygame.K_RIGHT:
                 self.selected_option_index = (self.selected_option_index + 1) % len(self.current_room_options)
+            elif key == pygame.K_r:
+                self.use_dice_for_reroll()
 
     def handle_door_action(self, direction, screen):
         """
