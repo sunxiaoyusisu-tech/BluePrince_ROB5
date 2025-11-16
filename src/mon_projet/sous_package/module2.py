@@ -4,6 +4,29 @@ from src.mon_projet.module1 import*
 from src.mon_projet.objets import*
 import random
 
+def random_objects_selection(objets_possibles, probabilites):
+    """
+    Sélectionne aléatoirement quels objets apparaissent dans une pièce.
+
+    Args : 
+        objets_possibles : liste de tous les objets qui peuvent apparaître
+        probabilites : liste des proba (0.0 à 1.0) pour chaque objet
+    
+    Returns : 
+        liste des objets qui apparaissent réellement 
+
+    """
+    objets_selectionnes = []
+
+    # S'assure que les listes ont la même longueur
+    while len(probabilites) < len(objets_possibles):
+        probabilites.append(0.5) # 50% par défaut
+
+    for i, objet in enumerate(objets_possibles):
+        if random.random() < probabilites[i]:
+            objets_selectionnes.append(objet)
+    return objets_selectionnes
+
 # Classes (enfants) pour gerer les effets speciaux
 
 class RoomEffetEntree(Room):
@@ -133,7 +156,8 @@ class DrawingRoom(RoomEffetSelection):
         print(f"Effet {self.nom} : Active la capacité de tirer de nouvelles options de draft.")
 
 class Portail(RoomEffetEntree):
-    """ Salle de téléportation"""
+    """ Salle de téléportation : téléporte le joueur vers une pièce aléatoire
+    et donne +5 pas."""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.teleportation_utilisee = False
@@ -210,8 +234,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "The Foundation",
             "portes": Porte(0, 1, 1, 1),  
             "rarete": 3,
-            "objets": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
-            #"proba_obj": [],
+            "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
+            "probabilites": [1.0, 1.0, 1.0],
             "cout_gemmes": 0,
             #"Couleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/The_Foundation_Icon.png"
@@ -221,8 +245,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Entrance Hall",
             "portes": Porte(1, 0, 1, 1),  
             "rarete": 0,
-            "objets": [],
-            #"proba_obj": [],
+            "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 0,
             #"Couleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Entrance_Hall.PNG"
@@ -232,8 +255,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Spare Room",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 0,
-            "objets": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
+            "objets_possibles": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
+            "probabilites": [0.5, 0.3, 0.2, 0.2],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Spare_Room.PNG"
@@ -243,8 +266,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Nook",
             "portes": Porte(0, 1, 0, 1), 
             "rarete": 0,
-            "objets": ["dé"],
-            #"proba_obj": [1.0],
+            "objets_possibles": ["dé"],
+            "probabilites": [1.0, 0.3],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Nook.PNG"
@@ -254,8 +277,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Garage",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
-            #"proba_obj": [1.0,1.0,1.0],
+            "objets_possibles": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
+            "probabilites": [0.5, 0.3, 0.4],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Garage_Icon.png"
@@ -265,8 +288,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Music Room",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 2,
-            "objets": ["sledgehammer"],
-            #"proba_obj": [1.0,1.0],
+            "objets_possibles": ["sledgehammer"],
+            "probabilites": [0.2, 0.4],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Music_Room.PNG"
@@ -276,8 +299,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Drawing Room",
             "portes": Porte(0, 1, 1, 1), 
             "rarete": 0,
-            "objets": [],
-            #"proba_obj": [],
+            "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 1,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Drawing_Room.PNG"
@@ -287,8 +309,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Study",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": [],
-            #"proba_obj": [],
+            "objets_possibles": [], "probabilites": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Study.PNG"
@@ -298,8 +319,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Sauna",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
+            "objets_possibles": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
+            "probabilites": [0.4, 0.5, 0.6, 0.3],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Sauna.PNG"
@@ -309,8 +330,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Coat Check",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 1,
-            "objets": ["gemme","gemme","or","or","or","or","or"],
-            #"proba_obj": [],
+            "objets_possibles": ["gemme","gemme","or","or","or","or","or"],
+           "probabilites": [0.4, 0.7],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Coat_Check.PNG"
@@ -320,8 +341,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Mail Room",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": [],
-            #"proba_obj": [],
+            "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu)], "probabilites": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Mail_Room_Icon.png"
@@ -331,8 +351,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "The pool",
             "portes": Porte(0, 1, 1, 1),
             "rarete": 1,
-            "objets": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
-            #"proba_obj": [],
+            "objets_possibles": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
+            "probabilites": [0.8, 0.7, 0.6],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/The_Pool_Icon.png"
@@ -342,8 +362,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Chamber of mirrors",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
-            #"proba_obj": [],
+            "objets_possibles": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
+            "probabilites": [0.7, 0.4, 0.3, 0.5],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Chamber_of_mirrors.PNG"
@@ -353,8 +373,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Veranda",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 2,
-            "objets": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
-            #"proba_obj": [],
+            "objets_possibles": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
+            "probabilites": [0.5, 0.1, 0.4],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Veranda.PNG"
@@ -364,8 +384,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Furnace",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
-            #"proba_obj": [],
+            "objets_possibles": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
+            "probabilites": [0.1, 0.1, 0.1, 0.1, 0.1],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Furnace_Icon.png"
@@ -375,8 +395,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Greenhouse",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 1,
-            "objets": ["metal detector","shovel","sledgehammer"],
-            #"proba_obj": [],
+            "objets_possibles": ["metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu)],
+            "probabilites": [0.1, 0.1, 0.1],
             "cout_gemmes": 1,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Greenhouse_Icon.png"
@@ -386,8 +406,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Office",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 1,
-            "objets": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
+            "objets_possibles": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
+            "probabilites": [0.4, 0.5, 0.6, 0.3],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Office.PNG"
@@ -397,8 +417,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Bedroom",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 0,
-            "objets": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
+            "objets_possibles": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
+            "probabilites": [0.4, 0.3, 0.2, 0.2, 0.1],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Bedroom.PNG"
@@ -408,8 +428,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Chapel",
             "portes": Porte(0, 1, 1, 1),
             "rarete": 0,
-            "objets": ["gemme","gemme","or","or","or"],
-            #"proba_obj": [],
+            "objets_possibles": ["gemme","gemme","or","or","or"],
+           "probabilites": [0.3, 0.3],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Chapel_Icon.png"
@@ -419,8 +439,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Master Bedroom",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["dé","dé","gemme","gemme","or","or"],
-            #"proba_obj": [],
+            "objets_possibles": ["dé","dé","gemme","gemme","or","or"],
+            "probabilites": [0.5, 0.3, 0.4],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Master_Bedroom.PNG"
@@ -429,7 +449,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Portail Mystique",
             "portes": Porte(1, 1, 1, 1),
             "rarete": 3,
-            "objets": ["gemme"],
+            "objets_possibles": ["gemme"],
+            "probabilites": [1.0, 0.1, 0.3],
             "cout_gemmes": 2,
             "image_path": "Rooms/Portail.PNG" 
         },
@@ -437,10 +458,30 @@ def creer_piece(type_piece: str) -> Room:
     }
 
     config = pieces_config.get(type_piece)
+
+    if not config:
+
+        return Room(
+            nom=type_piece,
+            portes=Porte(1, 1, 1, 1), # Porte par défaut
+            rarete=1,
+            objets=[],
+            cout_gemmes=0,
+            image_path=f"Rooms/{type_piece}.png" 
+        )
+
+    # Appliquer la sélection aléatoire d'objets
+    objets_reels = random_objects_selection(
+        config.get("objets_possibles", []), 
+        config.get("probabilites", [])
+    )
+
+    positions_initiales = config["portes"].positions
+    portes_instance = Porte(*positions_initiales)
     
-    if config:
-        positions_initiales = config["portes"].positions
-        portes_instance = Porte(*positions_initiales)
+    #if config:
+    #    positions_initiales = config["portes"].positions
+    #    portes_instance = Porte(*positions_initiales)
     
     # Récupérer la configuration de la pièce
     #config = pieces_config[type_piece]
@@ -456,7 +497,7 @@ def creer_piece(type_piece: str) -> Room:
         nom=config["nom"],
         portes=portes_instance,
         rarete=config["rarete"], # 0 : CommonPlace ou N\A / 1 : Standard / 2: Unusual / 3 : Rare
-        objets=config.get("objets", []),
+        objets=objets_reels,
         #proba_obj=config["proba_obj"],
         cout_gemmes=config["cout_gemmes"],
         #couleur=config["couleur"],
@@ -468,247 +509,40 @@ def get_piece(type_piece : str) -> dict:
     Récupère uniquement les métadonnées essentielles d'une pièce 
     (nom, rareté, coût) sans instancier la Room complète ni charger l'image.
     """
-
-    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé","boussole magique","boussole magique","boussole magique"]
-
-    # Dictionnaire de configuration des pièces
-    pieces_config = {
-        "The Foundation": {
-            "nom": "The Foundation",
-            "portes": Porte(0, 1, 1, 1),  
-            "rarete": 3,
-            "objets": [EndroitACreuser(DIG_SPOT_contenu) for _ in range(3)],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"Couleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/The_Foundation_Icon.png"
-        },
-        
-        "Entrance Hall": {
-            "nom": "Entrance Hall",
-            "portes": Porte(1, 0, 1, 1),  
-            "rarete": 0,
-            "objets": [],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"Couleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Entrance_Hall.PNG"
-        },
-        
-        "Spare Room": {
-            "nom": "Spare Room",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 0,
-            "objets": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Spare_Room.PNG"
-        },
-        
-        "Nook": {
-            "nom": "Nook",
-            "portes": Porte(0, 1, 0, 1), 
-            "rarete": 0,
-            "objets": ["dé"],
-            #"proba_obj": [1.0],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Nook.PNG"
-        },
-        
-        "Garage": {
-            "nom": "Garage",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 2,
-            "objets": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
-            #"proba_obj": [1.0,1.0,1.0],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Garage_Icon.png"
-        },
-        
-        "Music Room": {
-            "nom": "Music Room",
-            "portes": Porte(0, 1, 0, 1),
-            "rarete": 2,
-            "objets": ["sledgehammer"],
-            #"proba_obj": [1.0,1.0],
-            "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Music_Room.PNG"
-        },
-        
-        "Drawing Room": {
-            "nom": "Drawing Room",
-            "portes": Porte(0, 1, 1, 1), 
-            "rarete": 0,
-            "objets": [],
-            #"proba_obj": [],
-            "cout_gemmes": 1,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Drawing_Room.PNG"
-        },
-        
-        "Study": {
-            "nom": "Study",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 2,
-            "objets": [],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Study.PNG"
-        },
-        
-        "Sauna": {
-            "nom": "Sauna",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 2,
-            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Sauna.PNG"
-        },
-        
-        "Coat Check": {
-            "nom": "Coat Check",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 1,
-            "objets": ["gemme","gemme","or","or","or","or","or"],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Coat_Check.PNG"
-        },
-        
-        "Mail Room": {
-            "nom": "Mail Room",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 2,
-            "objets": [],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Mail_Room_Icon.png"
-        },
-
-        "The pool": {
-            "nom": "The pool",
-            "portes": Porte(0, 1, 1, 1),
-            "rarete": 1,
-            "objets": [EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu)],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/The_Pool_Icon.png"
-        },
-
-        "Chamber of mirrors": {
-            "nom": "Chamber of mirrors",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 3,
-            "objets": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Chamber_of_mirrors.PNG"
-        },
-
-        "Veranda": {
-            "nom": "Veranda",
-            "portes": Porte(1, 1, 0, 0),
-            "rarete": 2,
-            "objets": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
-            #"proba_obj": [],
-            "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Veranda.PNG"
-        },
-        
-        "Furnace": {
-            "nom": "Furnace",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 3,
-            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer"],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Furnace_Icon.png"
-        },
-
-        "Greenhouse": {
-            "nom": "Greenhouse",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 1,
-            "objets": ["metal detector","shovel","sledgehammer"],
-            #"proba_obj": [],
-            "cout_gemmes": 1,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Greenhouse_Icon.png"
-        },
-
-        "Office": {
-            "nom": "Office",
-            "portes": Porte(0, 1, 0, 1),
-            "rarete": 1,
-            "objets": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
-            "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Office.PNG"
-        },
-
-        "Bedroom": {
-            "nom": "Bedroom",
-            "portes": Porte(0, 1, 0, 1),
-            "rarete": 0,
-            "objets": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Bedroom.PNG"
-        },
-
-        "Chapel": {
-            "nom": "Chapel",
-            "portes": Porte(0, 1, 1, 1),
-            "rarete": 0,
-            "objets": ["gemme","gemme","or","or","or"],
-            #"proba_obj": [],
-            "cout_gemmes": 0,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Chapel_Icon.png"
-        },
-
-        "Master Bedroom": {
-            "nom": "Master Bedroom",
-            "portes": Porte(0, 1, 0, 0),
-            "rarete": 3,
-            "objets": ["dé","dé","gemme","gemme","or","or"],
-            #"proba_obj": [],
-            "cout_gemmes": 2,
-            #"ouleur":CouleurPiece.BLEUE,
-            "image_path": "Rooms/Master_Bedroom.PNG"
-        },
-        "Portail Mystique": {
-            "nom": "Portail Mystique",
-            "portes": Porte(1, 1, 1, 1),
-            "rarete": 3,
-            "objets": ["gemme"],
-            "cout_gemmes": 2,
-            "image_path": "Rooms/Portail.PNG" 
-        },
-
+    
+    pieces_metadata = {
+        "Entrance Hall": {"rarete": 0, "cout_gemmes": 0},
+        "Spare Room": {"rarete": 0, "cout_gemmes": 0},
+        "Bedroom": {"rarete": 0, "cout_gemmes": 0},
+        "Chapel": {"rarete": 0, "cout_gemmes": 0},
+        "Nook": {"rarete": 0, "cout_gemmes": 0},
+        "Garage": {"rarete": 2, "cout_gemmes": 0},
+        "Music Room": {"rarete": 2, "cout_gemmes": 2},
+        "Drawing Room": {"rarete": 0, "cout_gemmes": 1},
+        "Study": {"rarete": 2, "cout_gemmes": 0},
+        "Sauna": {"rarete": 2, "cout_gemmes": 0},
+        "Coat Check": {"rarete": 1, "cout_gemmes": 0},
+        "Mail Room": {"rarete": 2, "cout_gemmes": 0},
+        "The pool": {"rarete": 1, "cout_gemmes": 0},
+        "Chamber of mirrors": {"rarete": 3, "cout_gemmes": 0},
+        "Veranda": {"rarete": 2, "cout_gemmes": 2},
+        "Furnace": {"rarete": 3, "cout_gemmes": 0},
+        "Greenhouse": {"rarete": 1, "cout_gemmes": 1},
+        "Office": {"rarete": 1, "cout_gemmes": 2},
+        "Master Bedroom": {"rarete": 3, "cout_gemmes": 2},
+        "Portail Mystique": {"rarete": 3, "cout_gemmes": 2}, # Nouvelle pièce
+        "The Foundation": {"rarete": 3, "cout_gemmes": 0}
     }
-
-    config = pieces_config.get(type_piece)
+    
+    config = pieces_metadata.get(type_piece)
 
     if config:
-        proba = Proba(config["rarete"])
-        return {"nom": config["nom"],
-            "rarete": config["rarete"],
+        rarete = config["rarete"]
+        proba = Proba(rarete)
+        return {
+            "nom": type_piece,
+            "rarete": rarete,
             "poids": proba.poids,
-            "cout_gemmes": config["cout_gemmes"]}
+            "cout_gemmes": config["cout_gemmes"]
+        }
     return None

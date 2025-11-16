@@ -14,7 +14,7 @@ class Inventaire:
         self.pieces_or:int=5
         self.gemmes:int=2
         self.cles:int=5
-        self.des:int=0
+        self.des:int=2
 
         #Objets permanents
         self.possede_pelle : bool = False
