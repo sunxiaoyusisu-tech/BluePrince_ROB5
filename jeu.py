@@ -556,6 +556,20 @@ class Game:
         if self.is_selecting_room:
             return
         
+        #Magasin
+        for obj in current_room.objets:
+            if isinstance(obj,Magasin):
+                if obj.catalogue == []:
+                    self.add_message("Le magasin a fermé", (150, 150, 150))
+                
+            #afficher le contenue du magasin
+            self.is_interacting = True
+            obj.afficher_catalogue()
+            self.current_interaction_object = obj
+            self.add_message ("Bienvenue au magasin! Que voulez-vous acheter ?", (150, 150, 150))
+
+            self.interaction_message += " (Appuyez sur Echap pour quitter)"
+        
         # Coffres
         for obj in current_room.objets:
             if isinstance(obj,Coffre):
