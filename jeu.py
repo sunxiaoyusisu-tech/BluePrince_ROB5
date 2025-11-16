@@ -620,8 +620,8 @@ class Game:
                     self.collect_item(item)
             for item in items_to_remove:
                 chosen_room.objets.remove(item)
-            else:
-                self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
+            #else:
+                #self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
         
         current_room = self.manoir_grid[self.current_row][self.current_col]
         
@@ -947,3 +947,4 @@ class Game:
         pass
 
     
+
