@@ -313,7 +313,7 @@ class Magasin(ObjetInteractif):
     """
     def __init__(self, catalogue: dict):
         super().__init__("Magasin")
-        self.catalogue = catalogue  # Dictionnaire {nom_objet: prix_en_or}
+        self.catalogue = catalogue  # Dictionnaire {nom_objet: prix}
 
     def utiliser(self, joueur: 'Joueur'):
         """
@@ -329,6 +329,34 @@ class Magasin(ObjetInteractif):
         print("Catalogue du magasin :")
         for objet, prix in self.catalogue.items():
             print(f"- {objet} : {prix} pièces d'or")
+
+    def selection_item(self, key):
+        """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
+        self.selected_option_index = 0
+        if self.is_selecting_room:
+            if key == pygame.K_LEFT:
+                self.selected_option_index = (self.selected_option_index - 1) % len(self.catalogue)
+            elif key == pygame.K_RIGHT:
+                self.selected_option_index = (self.selected_option_index + 1) % len(self.catalogue)
+
+    def confirm_purchase(self, joueur: 'Joueur', nom_objet: str) -> bool:
+        """
+        Confirme l'achat de l'objet sélectionné si le joueur a assez d'or.
+        Retourne True si l'achat est réussi, False sinon.
+        """
+        if not self.is_selecting_room:
+            return
+            
+        chosen_item = self.catalogue[self.selected_option_index]
+        
+        # Vérification du coût en or
+        if self.inventaire.pieces_or >= chosen_item.prix:
+            if chosen_item.cout_or > 0:
+                self.inventaire.modifier_or(-chosen_item.prix)
+                self.add_message(f"Dépensé {chosen_item.prix} or", (255, 200, 100))
+                #ajouter l'objet à l'inventaire
+                #retirer l'objet du magasin
+            
 
     def acheter(self, joueur: 'Joueur', nom_objet: str) -> bool:
         """
