@@ -345,7 +345,8 @@ class Game:
             ("Or", self.inventaire.pieces_or),
             ("Gemmes", self.inventaire.gemmes),
             ("Clés", self.inventaire.cles),
-            ("Dés", self.inventaire.des)
+            ("Dés", self.inventaire.des),
+            ("Passe-muraille", self.inventaire.passe_muraille)
         ]
 
         y_pos = ui_y + 50
@@ -743,6 +744,16 @@ class Game:
             if isinstance(item,str):
                 objets_supp.append(item)
                 self.collect_item(item)
+            elif isinstance(item, PasseMuraille):
+                    # On essaie de l'ajouter
+                    ajout_reussi = self.inventaire.modifier_passe_muraille(1) 
+                    
+                    if ajout_reussi:
+                        items_to_remove.append(item) # On le ramasse
+                        self.add_message("Trouvé un Passe-muraille! (Max: 1)", (100, 255, 100))
+                    else:
+                        # L'inventaire est plein, on ne le ramasse pas (il reste dans la pièce)
+                        self.add_message("Passe-muraille trouvé, mais inventaire plein (Max: 1)", (200, 200, 100))
         for item in objets_supp:
             chosen_room.objets.remove(item)
 
@@ -1159,4 +1170,51 @@ class Game:
         #Reinitialiser l'état d'interaction
         self.is_interacting = False
         self.current_interaction_object = None
-    
+        
+    def use_wall_pass(self, direction):
+        """
+        Tente d'utiliser un Passe-muraille pour CRÉER une porte là où il y a un mur.
+        """
+        # 1. Vérifier si on a l'objet
+        if self.inventaire.passe_muraille <= 0:
+            self.add_message("Vous n'avez pas de Passe-muraille.", (255, 100, 100))
+            return
+
+        current_room = self.manoir_grid[self.current_row][self.current_col]
+        direction_enum = DIR_FROM_STR[direction]
+
+        # 2. Vérifier si une porte EXISTE DÉJÀ
+        if current_room.portes.a_porte(direction_enum):
+            self.add_message("Il y a déjà une porte ici. Utilisez ESPACE.", (255, 200, 100))
+            return
+
+        # 3. Vérifier les limites de la grille (logique copiée de handle_door_action)
+        dr, dc = 0, 0
+        if direction == "droite": dr, dc = 0, 1
+        elif direction == "gauche": dr, dc = 0, -1
+        elif direction == "haut": dr, dc = -1, 0
+        elif direction == "bas": dr, dc = 1, 0
+        
+        r_cible, c_cible = self.current_row + dr, self.current_col + dc
+
+        if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
+            self.add_message("Impossible de créer une porte hors du manoir!", (255, 100, 100))
+            return
+        if self.manoir_grid[r_cible][c_cible] is not None:
+            self.add_message("Cet espace est déjà occupé!", (255, 100, 100))
+            return
+
+        # 4. 
+        consommation_reussie = self.inventaire.modifier_passe_muraille(-1)
+        
+        if not consommation_reussie:
+             self.add_message("Erreur: Inventaire vide (Passe-muraille).", (255, 0, 0))
+             return
+
+        self.add_message("Passe-muraille utilisé! Un passage s'ouvre.", (255, 215, 0))
+
+        # 5. Cré
+        current_room.portes.positions[direction_enum.value] = 1 
+        
+        # 6.(check_and_open_door)
+        self.check_and_open_door(direction)

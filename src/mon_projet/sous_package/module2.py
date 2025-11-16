@@ -3,6 +3,9 @@
 from src.mon_projet.module1 import*
 from src.mon_projet.objets import*
 import random
+from src.mon_projet.objets import (
+    PasseMuraille  # <-- Assurez-vous que ceci est ajouté
+)
 
 def random_objects_selection(objets_possibles, probabilites):
     """
@@ -428,8 +431,8 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Chapel",
             "portes": Porte(0, 1, 1, 1),
             "rarete": 0,
-            "objets_possibles": ["gemme","gemme","or","or","or"],
-           "probabilites": [0.3, 0.3],
+            "objets_possibles": ["gemme","gemme","or","or","or",PasseMuraille()],
+           "probabilites": [0.3, 0.3, 0.5, 0.5, 0.5, 1.0],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
             "image_path": "Rooms/Chapel_Icon.png"

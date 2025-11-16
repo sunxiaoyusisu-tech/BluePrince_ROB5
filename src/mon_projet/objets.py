@@ -335,3 +335,14 @@ class Magasin(ObjetInteractif):
 
         else:
             return "pas_assez_or"
+        
+class PasseMuraille(ObjetConsommable):
+    """
+    Objet consommable (Max 1) qui permet de créer une porte sur un mur.
+    """
+    def __init__(self):
+        super().__init__("Passe-muraille", 0) # Ne rend 0 pas
+
+    def utiliser(self, joueur: 'Joueur'):
+        # L'utilisation est gérée par la touche 'F' (Game.use_wall_pass)
+        pass
