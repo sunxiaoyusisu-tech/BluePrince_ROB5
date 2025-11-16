@@ -306,3 +306,43 @@ class Coffre(ObjetInteractif):
 
         return objet_trouve
 
+
+class Magasin(ObjetInteractif):
+    """
+    Magasin : permet d'acheter des objets en échange de pièces d'or.
+    """
+    def __init__(self, catalogue: dict):
+        super().__init__("Magasin")
+        self.catalogue = catalogue  # Dictionnaire {nom_objet: prix_en_or}
+
+    def utiliser(self, joueur: 'Joueur'):
+        """
+        Implémentation requise de la méthode abstraite 'utiliser' de la classe Objet.
+        Pour un objet interactif non consommable comme Magasin, elle ne fait rien.
+        """
+        pass
+
+    def afficher_catalogue(self):
+        """
+        Affiche les objets disponibles à l'achat avec leurs prix.
+        """
+        print("Catalogue du magasin :")
+        for objet, prix in self.catalogue.items():
+            print(f"- {objet} : {prix} pièces d'or")
+
+    def acheter(self, joueur: 'Joueur', nom_objet: str) -> bool:
+        """
+        Permet au joueur d'acheter un objet s'il a assez d'or.
+        Retourne True si l'achat est réussi, False sinon.
+        """
+
+        prix = self.catalogue[nom_objet]
+        if joueur.inventaire.pieces_or >= prix:
+            joueur.inventaire.modifier_or(-prix)
+            # Ajouter l'objet à l'inventaire du joueur
+            # (Logique d'ajout dépend de l'implémentation de l'inventaire)
+            print(f"Achat réussi : {nom_objet} pour {prix} pièces d'or.")
+            return True
+        else:
+            print("Pas assez d'or pour cet achat.")
+            return False
