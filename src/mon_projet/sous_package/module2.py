@@ -163,6 +163,7 @@ def creer_piece(type_piece: str) -> Room:
     DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé"]
     classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
 
+
     # Dictionnaire de configuration des pièces
     pieces_config = {
         "The Foundation": {
@@ -191,7 +192,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Spare Room",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 0,
-            "objets": ["cle","cle","shovel","sledgehammer"],
+            "objets": ["cle","cle","shovel","sledgehammer",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -213,7 +214,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Garage",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["shovel","metal detector","sledgehammer"],
+            "objets": ["shovel","metal detector","sledgehammer",Coffre(niveau_verrouillage=1),Coffre(niveau_verrouillage=2)],
             #"proba_obj": [1.0,1.0,1.0],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -257,7 +258,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Sauna",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 2,
-            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or"],
+            "objets": ["cle","gemme","gemme","gemme","gemme","or","or","or", Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -301,7 +302,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Chamber of mirrors",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["fruit","fruit","fruit","fruit","cle","cle","cle","cle","gemme","gemme","gemme","gemme","or","or","or","or"],
+            "objets": ["fruit","fruit","fruit","fruit","cle","cle","gemme","gemme","or","or"],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -312,7 +313,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Veranda",
             "portes": Porte(1, 1, 0, 0),
             "rarete": 2,
-            "objets": ["gemme","locked trunk","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
+            "objets": ["gemme","metal detector","shovel","sledgehammer",EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu),EndroitACreuser(DIG_SPOT_contenu), EndroitACreuser(DIG_SPOT_contenu)],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
@@ -334,7 +335,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Greenhouse",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 1,
-            "objets": ["watering can","metal detector","shovel","sledgehammer"],
+            "objets": ["metal detector","shovel","sledgehammer"],
             #"proba_obj": [],
             "cout_gemmes": 1,
             #"ouleur":CouleurPiece.BLEUE,
@@ -345,7 +346,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Office",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 1,
-            "objets": ["pomme","dé","dé","or","or","or"],
+            "objets": ["pomme","dé","dé","or","or","or",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,
@@ -356,7 +357,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Bedroom",
             "portes": Porte(0, 1, 0, 1),
             "rarete": 0,
-            "objets": ["pomme","dé","cle","gemme","or","or","or"],
+            "objets": ["pomme","dé","gemme","or",Coffre(niveau_verrouillage=1)],
             #"proba_obj": [],
             "cout_gemmes": 0,
             #"ouleur":CouleurPiece.BLEUE,
@@ -378,7 +379,7 @@ def creer_piece(type_piece: str) -> Room:
             "nom": "Master Bedroom",
             "portes": Porte(0, 1, 0, 0),
             "rarete": 3,
-            "objets": ["dé","dé","cle","gemme","gemme","or","or","or","or"],
+            "objets": ["dé","dé","gemme","gemme","or","or"],
             #"proba_obj": [],
             "cout_gemmes": 2,
             #"ouleur":CouleurPiece.BLEUE,

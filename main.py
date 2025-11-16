@@ -84,7 +84,11 @@ while running:
             # Gestion de l'interaction
             if game.is_interacting:
                 if event.key == pygame.K_RETURN:
-                    game.digging()
+                    if isinstance(game.current_interaction_object, EndroitACreuser):
+                        game.digging()
+                    elif isinstance(game.current_interaction_object, Coffre):
+                        game.ouvrir_coffre()
+                    #game.digging()
                 elif event.key == pygame.K_ESCAPE : 
                     game.is_interacting = False
                     game.current_interaction_object = None
@@ -125,13 +129,39 @@ while running:
                     # Nouvelle logique : Vérifier si on peut se déplacer OU ouvrir une porte
                     game.handle_door_action(direction, screen)
 
-                # ENTRÉE pour interagir avec la case actuelle (Creuser / Ramasser)
-                elif event.key == pygame.K_RETURN:
-                    # Récupérer la pièce actuelle
+
+                # C pour creuser 
+                elif event.key == pygame.K_c :
                     current_room = game.manoir_grid[game.current_row][game.current_col]
                     if current_room:
+                        #Chercher un endroit a creuser
+                        for obj in current_room.objets:
+                            if isinstance(obj, EndroitACreuser):
+                                game.current_interaction_object = obj
+                                game.is_interacting = True
+                                obj.interagir(game)
+                                break #sortir de la boucle apres avoir trouve
+
+                # O pour ouvrir un coffre
+                elif event.key == pygame.K_o:
+                    current_room = game.manoir_grid[game.current_row][game.current_col]
+                    if current_room:
+                        #Chercher un coffre dans la piece
+                        for obj in current_room.objets:
+                            if isinstance(obj,Coffre):
+                                game.current_interaction_object = obj
+                                game.is_interacting = True
+                                # Afficher un message pour confirmer
+                                print("Appuyez sur ENTRÉE pour ouvrir le coffre, ou ESC pour annuler")
+                                break
+
+                # ENTRÉE pour interagir avec la case actuelle (Creuser / Ramasser)
+                #elif event.key == pygame.K_RETURN:
+                    # Récupérer la pièce actuelle
+                #    current_room = game.manoir_grid[game.current_row][game.current_col]
+                #    if current_room:
                         # Tenter de commencer une interaction
-                        game.start_interaction(current_room)
+                #        game.start_interaction(current_room)
 
                 # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
                 #elif event.key == pygame.K_RETURN:

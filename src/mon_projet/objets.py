@@ -1,5 +1,7 @@
 
 from abc import ABC, abstractmethod
+from src.mon_projet.inventaire import*
+import random
 
 # Fait venir la classe Joueur pour éviter les dépendances circulaires
 # avec les type hints
@@ -156,19 +158,82 @@ class EndroitACreuser(ObjetInteractif):
         import random
 
         chance_de_trouver = 0.7
-        loot_table = self.contenu_possibles.copy()
+        #loot_table = self.contenu_possibles.copy()
         if game.inventaire.possede_detecteur_metaux:
             chance_de_trouver=1.0
             print("Détecteur de métaux activé!")
 
+        loot_table = self.contenu_possibles.copy()
+
         if game.inventaire.possede_patte_lapin:
-            loot_table.extend(["gemme", "cle", "or"]) 
+            loot_table.extend(["gemme", "cle", "or", "dé"]) 
             print("Patte de lapin activée!")
         if random.random() < chance_de_trouver:
             if not loot_table:
                 return "rien"
-            #l'objet doit etre instancié
+            
+            #l'objet doit etre instancié / tirer un objet aléatoirement
             nom_objet = random.choice(loot_table)
             return nom_objet
         else:
             return "rien"
+        
+class Coffre(ObjetInteractif):
+    """
+    Coffre : peut être ouvert avec une clé ou un marteau.
+    Contient des objets aléatoires
+    """
+    def __init__(self, niveau_verrouillage: int = 1):
+        super().__init__("Coffre")
+        self.niveau_verouillage = niveau_verrouillage
+    
+    def utiliser(self, game):
+        """ Implémentation pour la méthode abstraite"""
+        pass
+    def ouvrir_coffre(self,game)->str:
+        """
+        Ouvre le coffre et retourne le contenu obtenu aléatoirement
+        """
+        if self.est_utilise:
+            return "déjà ouvert"
+        
+        #Vérifier si on peut ouvrir
+        peut_ouvrir_marteau = game.inventaire.possede_marteau
+        peut_ouvrir_cle = game.inventaire.cles > 0
+
+        if not (peut_ouvrir_marteau or peut_ouvrir_cle):
+            return "impossible"
+        
+        # Si on a le marteau, on l'utilise (gratuit)
+        if peut_ouvrir_marteau:
+            print("Coffre ouvert avec le marteau!")
+        # Sinon on utilise une clé
+        else:
+            game.inventaire.modifier_cles(-1)
+            print("Coffre ouvert avec une clé!")
+        
+        #Marquer comme utilisé
+        self.est_utilise = True
+
+        # Tirage aleatoire du contenu
+        
+        #objets possibles dans le coffre + leur probabilité
+        coffre_contenu = [
+            ("or", 0.25),               # 25% - 1 pièce d'or
+            ("or", 0.15),               # 15% - 1 pièce d'or 
+            ("gemme", 0.20),            # 20% - 1 gemme
+            ("cle", 0.15),              # 15% - 1 clé
+            ("dé", 0.10),               # 10% - 1 dé
+            ("pomme", 0.08),            # 8% - 1 pomme (+ 2 pas)
+            ("banane",0.05),            # 5% - 1 banane (+3 pas)
+            ("rien", 0.07)              # 7% - rien
+        ]
+
+        # Tirer un objet selon les probabilités
+        objets = [item[0] for item in coffre_contenu]
+        probas = [item[1] for item in coffre_contenu]
+
+        objet_trouve = random.choices(objets, weights=probas, k =1)[0]
+
+        return objet_trouve
+

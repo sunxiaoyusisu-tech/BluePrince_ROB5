@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 from joueur import*
-from src.mon_projet.objets import EndroitACreuser
+from src.mon_projet.objets import*
 from src.mon_projet.module1 import*
 import random
 
@@ -467,6 +467,30 @@ class Game:
         if self.is_selecting_room:
             return
         
+        # Coffres
+        for obj in current_room.objets:
+            if isinstance(obj,Coffre):
+                if obj.est_utilise :
+                    self.add_message("Ce coffre a déjà été ouvert.", (150, 150, 150))
+                continue
+            
+            # Vérifier si on peut ouvrir
+            if self.inventaire.possede_marteau:
+                self.is_interacting = True
+                self.current_interaction_object = obj
+                self.interaction_message = "Ouvrir le coffre avec le marteau (gratuit) ?"
+                self.message_timer = pygame.time.get_ticks() + 10000
+                return
+            elif self.inventaire.cles > 0 :
+                self.is_interacting = True
+                self.current_interaction_object = obj
+                self.interaction_message = "Ouvrir le coffre avec une clé (coût: 1 clé) ?"
+                self.message_timer = pygame.time.get_ticks() + 10000
+                return
+            else:
+                self.add_message("Besoin d'une clé ou d'un marteau!", (255, 100, 100))
+                return
+
         #Trouver un objet interactif (EndroitACreuser)
         for obj in current_room.objets:
             if isinstance(obj,EndroitACreuser):
@@ -634,6 +658,19 @@ class Game:
         if not current_room.portes.a_porte(direction_enum):
             self.add_message("Pas de porte dans cette direction!", (255, 100, 100))
             return
+        
+        # Auto-collecte des objets
+        objets_supp = []
+
+        for item in chosen_room.objets:
+            if isinstance(item,str):
+                objets_supp.append(item)
+                self.collect_item(item)
+        for item in objets_supp:
+            chosen_room.objets.remove(item)
+
+        # Verification automatique
+        self.interactions_rooms(chosen_room)
 
     def check_and_open_door(self, direction):
         """
@@ -839,27 +876,6 @@ class Game:
             self.current_row, self.current_col = self.target_row, self.target_col
 
             # APPLICATION DE L'EFFET D'ENTRÉE
-            #is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
-
-            #if is_entry_effect:
-                # Si l'effet est permanent (Chapel), on déclenche l'effet sans condition de visite.
-            #    if chosen_room.nom == "Chapel":
-             #       chosen_room.appliquer_effet(self)
-                # Sinon (Bedroom, Master Bedroom), l'effet se déclenche à la première entrée
-              #  else:
-               #     chosen_room.appliquer_effet(self)
-
-            # Marquer comme visitée (uniquement si l'effet n'est PAS Chapel/permanent)
-            #if chosen_room.nom != "Chapel":
-             #   chosen_room.visitee = True
-
-            #chosen_room.visitee = True
-            #self.inventaire.modifier_pas(-1)
-            #print(f"Pièce choisie : {chosen_room.nom} ajoutée au manoir. Déplacement effectué.")
-            #self.check_for_loss_condition()
-            
-        #else:
-         #   print("Pas assez de gemmes pour cette pièce. Veuillez en choisir une autre ou appuyer sur une flèche pour annuler/changer.")
 
             if hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree":
                 print(f"[DEBUG] Application effet entrée pour: {chosen_room.nom}")
@@ -887,10 +903,26 @@ class Game:
             # Message de placement de pièce
             self.add_message(f"{chosen_room.nom} ajoutée! Entrée dans la pièce.", (100, 255, 150))
 
-            
         else:
             # Message d'erreur de gemmes
             self.add_message(f"Besoin de {chosen_room.cout_gemmes} gemmes (vous avez {self.inventaire.gemmes})", (255, 100, 100))
+
+        # Auto-collecte des objets
+        objets_supp = []
+
+        for item in chosen_room.objets:
+            if isinstance(item,str):
+                objets_supp.append(item)
+                self.collect_item(item)
+        for item in objets_supp:
+            chosen_room.objets.remove(item)
+
+        # Verification automatique
+        self.interactions_rooms(chosen_room)
+
+        self.inventaire.modifier_pas(-1)
+        self.add_message(f"{chosen_room.nom} ajoutée! Entrée dans la pièce.", (100, 255, 150))
+
     
     def align_room_with_door(self, room: Room, move_dir_str: str):
         """ 
@@ -991,4 +1023,56 @@ class Game:
                                    screen.get_height() // 2 - defeat_text.get_height() // 2))
         pygame.display.flip()
         pygame.time.delay(5000)  # Affiche pendant 5 secondes
+    
+    def interactions_rooms (self,room):
+        """
+        Vérifie automatiquement s'il y a des objets interactifs dans la pièce et affiche un message pour informer le joueur
+        """
+        for obj in room.objets :
+            if isinstance(obj, Coffre) and not obj.est_utilise:
+                if self.inventaire.possede_marteau:
+                    self.add_message("Coffre détecté! Appuyer sur O pour ouvrir (Marteau: gratuit)", (255, 215, 0))
+                    return
+                elif self.inventaire.cles > 0:
+                    self.add_message("Coffre détecté! Appuyer sur O pour ouvrir (Clé: -1)", (255, 215, 0))
+                    return
+                else:
+                    self.add_message("Coffre verrouillé (besoin clé ou marteau)", (200, 100, 100))
+                    return
+        
+        # Chercher les endroits à creuser non utilisés
+        for obj in room.objets : 
+            if isinstance(obj, EndroitACreuser) and not obj.est_utilise :
+                if self.inventaire.possede_pelle:
+                    self.add_message("Endroit à creuser. Appuyer C pour creuser", (255, 215, 0))
+                    return
+                else :
+                    self.add_message("Endroit à creuser détecté (besoin pelle)", (200, 100, 100))
+                    return
+                
+    def ouvrir_coffre(self):
+        """
+        Ouvre un coffre avec marteau ou clé.
+        """
+        if not self.is_interacting or not isinstance(self.current_interaction_object, Coffre):
+            return
+    
+        coffre = self.current_interaction_object
+    
+        # Ouvrir le coffre
+        result = coffre.ouvrir_coffre(self)
+
+        if result == "déjà ouvert":
+            self.add_message("Ce coffre est déjà vide.", (150, 150, 150))
+        elif result == "impossible":
+            self.add_message("Impossible d'ouvrir ce coffre.", (255, 100, 100))
+        elif result == "rien":
+            self.add_message("Le coffre est vide... Quel dommage!", (150, 150, 150))
+        else:
+            # Un objet a été trouvé: utilise la collecte automatique
+            self.collect_item(result)
+        
+        #Reinitialiser l'état d'interaction
+        self.is_interacting = False
+        self.current_interaction_object = None
     
