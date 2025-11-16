@@ -401,7 +401,7 @@ class Game:
         Affiche les options de pièces à choisir
         """
         x = 500
-        y = screen.get_height() - 400
+        y = screen.get_height() - 250
         WIDTH = 600 
         HEIGHT = 300
         image_size = 140
@@ -447,6 +447,11 @@ class Game:
         if not self.is_interacting:
             return
         
+        if isinstance(self.current_interaction_object, Magasin):
+            # C'est l'interaction Magasin, elle a sa propre méthode de dessin
+            self.draw_magasin(screen)
+            return
+
         x,y = 500, screen.get_height() - 300
         width, height = 600,80
 
@@ -463,6 +468,53 @@ class Game:
             text_surface = self.font_medium.render(line, True, (255,255,255))
             screen.blit(text_surface,(x+10,y+10+i*25))
     
+    def draw_magasin(self,screen):
+        """
+        Dessine l'interface d'achat pour le magasin
+        """
+        if not self.is_interacting or not isinstance(self.current_interaction_object,Magasin):
+            return
+        shop: Magasin = self.current_interaction_object
+        
+        x, y = 500, screen.get_height() - 280
+        WIDTH = 600 
+        HEIGHT = 250
+        image_size = 80 # Taille d'un petit item pour la clarté
+
+        # Zone d'affichage
+        shop_rect = pygame.Rect(x - 10, y - 10, WIDTH + 20, HEIGHT + 20)
+        pygame.draw.rect(screen, self.DARK_BLUE, shop_rect)
+        pygame.draw.rect(screen, self.BLUEPRINT_BLUE, shop_rect, 2)
+        
+        title = self.font_large.render("MAGASIN", True, (255, 255, 255))
+        screen.blit(title, (x + WIDTH // 2 - title.get_width() // 2, y))
+
+        y_pos = y + 50
+        
+        # Afficher les options
+        for i, (item_name, price) in enumerate(shop.catalogue):
+            
+            x_item_pos = x + 30 + (i % 2) * (WIDTH // 2)
+            y_item_pos = y_pos + (i // 2) * 50
+
+            # Encadrer l'option sélectionnée
+            if i == shop.selected_option_index:
+                pygame.draw.rect(screen, (255, 255, 0), (x_item_pos - 5, y_item_pos - 5, WIDTH // 2 - 10, 40), 2)
+
+            # Afficher l'objet et le prix
+            text_item = self.font_medium.render(f"{item_name.capitalize()}", True, (255, 255, 255))
+            text_price = self.font_medium.render(f"({price} Or)", True, (255, 215, 0))
+
+            screen.blit(text_item, (x_item_pos, y_item_pos))
+            screen.blit(text_price, (x_item_pos + 120, y_item_pos))
+            
+            if i >= 6: # Limite le nombre d'éléments pour ne pas dépasser la boîte
+                break
+
+        # Message d'aide
+        help_text = self.font_small.render("Gauche/Droite pour choisir - Entrée pour acheter - Echap pour quitter", True, self.LIGHT_BLUE)
+        screen.blit(help_text, (x + WIDTH // 2 - help_text.get_width() // 2, y + HEIGHT - 30))
+
     #initialiser l'interaction
     def start_interaction(self,current_room : Room) : 
         """
@@ -476,14 +528,20 @@ class Game:
             if isinstance(obj,Magasin):
                 if obj.catalogue == []:
                     self.add_message("Le magasin a fermé", (150, 150, 150))
+                    return
                 
-            #afficher le contenue du magasin
-            self.is_interacting = True
-            obj.afficher_catalogue()
-            self.current_interaction_object = obj
-            self.add_message ("Bienvenue au magasin! Que voulez-vous acheter ?", (150, 150, 150))
-
-            self.interaction_message += " (Appuyez sur Echap pour quitter)"
+                # Tente d'ouvrir le magasin et obtient le résultat
+                result = obj.interagir(self) 
+                
+                # Utilise immédiatement le résultat pour afficher le message
+                if result == "fermé":
+                    self.add_message("Le magasin a fermé ses portes.", (150, 150, 150))
+                else:
+                    self.is_interacting = True
+                    self.current_interaction_object = obj
+                    self.add_message("Bienvenue au magasin! (Gauche/Droite pour choisir, Entrée pour acheter)", (150, 255, 150))
+                
+                return
         
         # Coffres
         for obj in current_room.objets:
@@ -552,7 +610,8 @@ class Game:
 
         #self.interaction_message = "Rien d'interactif"
         #self.message_timer = pygame.time.get_ticks() + 3000
-    
+
+
     def digging(self):
         """
         Execute l'action de creuser
@@ -946,6 +1005,8 @@ class Game:
         self.inventaire.modifier_pas(-1)
         self.add_message(f"{chosen_room.nom} ajoutée! Entrée dans la pièce.", (100, 255, 150))
 
+        # Déclenchement de l'interaction après être entré dans la nouvelle pièce
+        self.start_interaction(chosen_room)
     
     def align_room_with_door(self, room: Room, move_dir_str: str):
         """ 

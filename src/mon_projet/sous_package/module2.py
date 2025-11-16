@@ -454,6 +454,23 @@ def creer_piece(type_piece: str) -> Room:
             "cout_gemmes": 2,
             "image_path": "Rooms/Portail.PNG" 
         },
+        "GiftShop": {
+            "nom": "GiftShop",
+            "portes": Porte(1, 1, 1, 1),
+            "rarete": 1,
+            # Le Magasin est un objet interactif unique avec son propre catalogue
+            "objets_possibles": [
+                Magasin(catalogue={
+                    "pomme": 3, 
+                    "cle": 5, 
+                    "dé": 10, 
+                    "kit de crochetage": 15
+                })
+            ], 
+            "probabilites": [1.0], # Le magasin apparaît toujours si la pièce est tirée
+            "cout_gemmes": 0,
+            "image_path": "Rooms/GiftShop.png" 
+        },
 
     }
 
@@ -531,7 +548,8 @@ def get_piece(type_piece : str) -> dict:
         "Office": {"rarete": 1, "cout_gemmes": 2},
         "Master Bedroom": {"rarete": 3, "cout_gemmes": 2},
         "Portail Mystique": {"rarete": 3, "cout_gemmes": 2}, # Nouvelle pièce
-        "The Foundation": {"rarete": 3, "cout_gemmes": 0}
+        "The Foundation": {"rarete": 3, "cout_gemmes": 0},
+        "GiftShop" : {"rarete":1,"cout_gemmes":0}
     }
     
     config = pieces_metadata.get(type_piece)

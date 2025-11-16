@@ -270,7 +270,10 @@ class Magasin(ObjetInteractif):
     """
     def __init__(self, catalogue: dict):
         super().__init__("Magasin")
-        self.catalogue = catalogue  # Dictionnaire {nom_objet: prix}
+        self.catalogue = list(catalogue.items())
+        self.selected_option_index = 0
+        self.is_selecting_item = False
+        self.interaction_message = "Bienvenue au magasin ! Choisissez un objet à acheter."
 
     def utiliser(self, joueur: 'Joueur'):
         """
@@ -279,55 +282,56 @@ class Magasin(ObjetInteractif):
         """
         pass
 
-    def afficher_catalogue(self):
+    def interagir(self, game) -> str:
         """
-        Affiche les objets disponibles à l'achat avec leurs prix.
+        Déclenche le mode de sélection / achat dans le jeu
         """
-        print("Catalogue du magasin :")
-        for objet, prix in self.catalogue.items():
-            print(f"- {objet} : {prix} pièces d'or")
-
-    def selection_item(self, key):
-        """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
-        self.selected_option_index = 0
-        if self.is_selecting_item:
-            if key == pygame.K_LEFT:
-                self.selected_option_index = (self.selected_option_index - 1) % len(self.catalogue)
-            elif key == pygame.K_RIGHT:
-                self.selected_option_index = (self.selected_option_index + 1) % len(self.catalogue)
-
-    def confirm_purchase(self, joueur: 'Joueur', nom_objet: str) -> bool:
-        """
-        Confirme l'achat de l'objet sélectionné si le joueur a assez d'or.
-        Retourne True si l'achat est réussi, False sinon.
-        """
-        if not self.is_selecting_item:
-            return
-            
-        chosen_item = self.catalogue[self.selected_option_index]
+        if not self.catalogue:
+            return "fermé"
         
-        # Vérification du coût en or
-        if self.inventaire.pieces_or >= chosen_item.prix:
-            if chosen_item.cout_or > 0:
-                self.inventaire.modifier_or(-chosen_item.prix)
-                self.add_message(f"Dépensé {chosen_item.prix} or", (255, 200, 100))
-                self.inventaire.ajouter(chosen_item)
-                self.catalogue.remove(chosen_item)
+        self.is_selecting_item = True
+        game.interaction_message = self.interaction_message
+        return "ouvert"
+    
+    def update_selection(self, direction : str):
+        """
+        Gere le mouvement dans le catalogue
+        """
+        if direction == "gauche":
+            self.selected_option_index = (self.selected_option_index - 1) % len(self.catalogue)
+        elif direction == "droite":
+            self.selected_option_index = (self.selected_option_index + 1) % len(self.catalogue)
+    
+    def confirmer_achat(self,game)->str:
+        """
+        Confirme l'achat de l'objet sélectionné si le joueur a assez d'or
+        """
+        if not self.catalogue:
+            return "fermé"
+        
+        item_name, price = self.catalogue[self.selected_option_index]
+        
+        if game.inventaire.pieces_or >= price:
+            # 1. Dépense l'or
+            game.inventaire.modifier_or(-price)
             
+            # 2. Ajoute l'objet (utilise la méthode de collecte existante)
+            game.collect_item(item_name)
+            
+            # 3. Retire l'objet du catalogue du magasin
+            self.catalogue.pop(self.selected_option_index)
+            
+            # 4. Gère la fin de l'interaction si le catalogue est vide
+            if not self.catalogue:
+                game.is_interacting = False
+                game.current_interaction_object = None
+                return "fermé_apres_achat"
 
-    def acheter(self, joueur: 'Joueur', nom_objet: str) -> bool:
-        """
-        Permet au joueur d'acheter un objet s'il a assez d'or.
-        Retourne True si l'achat est réussi, False sinon.
-        """
+            # 5. Réajuste l'index de sélection si nécessaire
+            if self.selected_option_index >= len(self.catalogue):
+                self.selected_option_index = 0
+                
+            return "achat_reussi"
 
-        prix = self.catalogue[nom_objet]
-        if joueur.inventaire.pieces_or >= prix:
-            joueur.inventaire.modifier_or(-prix)
-            # Ajouter l'objet à l'inventaire du joueur
-            # (Logique d'ajout dépend de l'implémentation de l'inventaire)
-            print(f"Achat réussi : {nom_objet} pour {prix} pièces d'or.")
-            return True
         else:
-            print("Pas assez d'or pour cet achat.")
-            return False
+            return "pas_assez_or"

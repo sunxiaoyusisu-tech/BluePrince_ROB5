@@ -83,7 +83,27 @@ while running:
             
             # Gestion de l'interaction
             if game.is_interacting:
-                if event.key == pygame.K_RETURN:
+
+                if isinstance(game.current_interaction_object, Magasin):
+                    shop: Magasin = game.current_interaction_object
+                    
+                    if event.key == pygame.K_RETURN:
+                        result = shop.confirmer_achat(game)
+                        if result == "achat_reussi":
+                            game.add_message(f"Achat réussi!", (100, 255, 100))
+                        elif result == "pas_assez_or":
+                            game.add_message(f"Pas assez d'or!", (255, 100, 100))
+                        elif result == "fermé_apres_achat":
+                            game.add_message(f"Magasin vidé! Interaction terminée.", (150, 150, 150))
+
+                    elif event.key == pygame.K_LEFT:
+                        shop.update_selection("gauche")
+                    
+                    elif event.key == pygame.K_RIGHT:
+                        shop.update_selection("droite")
+
+
+                elif event.key == pygame.K_RETURN:
                     if isinstance(game.current_interaction_object, EndroitACreuser):
                         game.digging()
                     elif isinstance(game.current_interaction_object, Coffre):
