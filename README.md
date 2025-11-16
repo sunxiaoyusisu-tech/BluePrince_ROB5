@@ -24,7 +24,7 @@ Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose 
 15. Pelle et possibilit´e de creuser dans des ”endroits ou creuser”
 
 ## Auteurs 
-sunxiaoyusisu-tech sur github : Xiaoyu SUN, numéro étudiant : 
+sunxiaoyusisu-tech sur github : Xiaoyu SUN, numéro étudiant : 28620139
 ChloeSalameh sur github : Chloé SALAMEH, numéro étudiant : 21211219
 Batmaaaan-4848 sur github : Léa BOUBLIL, numéro étudiant : 21226914
 
