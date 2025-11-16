@@ -22,7 +22,7 @@ Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose 
 13. Kit de crochetage et ouverture des portes de niveau 1.
 14. Marteau et ouverture des coffres
 15. Pelle et possibilit´e de creuser dans des ”endroits ou creuser”
-
+16.  Autre type d’objet different des autres.
 ## Auteurs 
 sunxiaoyusisu-tech sur github : Xiaoyu SUN, numéro étudiant : 28620139
 ChloeSalameh sur github : Chloé SALAMEH, numéro étudiant : 21211219
@@ -50,3 +50,4 @@ python main.py
 5. ESC : Quitter le jeu ou annuler une interaction.
 6. C : Interagir avec la pièce actuelle pour Creuser
 7. O : Interagir avec la pièce actuelle pour Ouvrir un coffre (locked trunk)。
+8. F : Traverser un mur sans porte.
