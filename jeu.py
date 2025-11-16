@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 from joueur import*
-
+from src.mon_projet.objets import EndroitACreuser
 from src.mon_projet.module1 import*
 import random
 
@@ -10,6 +10,20 @@ sys.path.insert(0, 'src')
 
 from mon_projet.inventaire import * 
 from mon_projet.sous_package.module2 import *
+
+DIR_FROM_STR = {
+    "haut": Direction.UP,
+    "bas": Direction.DOWN,
+    "droite": Direction.RIGHT,
+    "gauche": Direction.LEFT,
+}
+
+OPPOSITE = {
+    Direction.UP: Direction.DOWN,
+    Direction.DOWN: Direction.UP,
+    Direction.RIGHT: Direction.LEFT,
+    Direction.LEFT: Direction.RIGHT,
+}
 
 # Fonction utilitaire de génération du niveau de verrouillage
 def generer_lock_level(target_row: int) -> int:
@@ -31,21 +45,6 @@ def generer_lock_level(target_row: int) -> int:
             return 1
         else:
             return 0 
-
-
-DIR_FROM_STR = {
-    "haut": Direction.UP,
-    "bas": Direction.DOWN,
-    "droite": Direction.RIGHT,
-    "gauche": Direction.LEFT,
-}
-
-OPPOSITE = {
-    Direction.UP: Direction.DOWN,
-    Direction.DOWN: Direction.UP,
-    Direction.RIGHT: Direction.LEFT,
-    Direction.LEFT: Direction.RIGHT,
-}
 
 class Game:
     def __init__(self):
@@ -71,6 +70,10 @@ class Game:
         self.current_interaction_object = None
         self.interaction_message = ""
         self.message_timer = 0 #pour les messages temporaires
+
+        # Message pour les changements d'inventaire et les effets
+        self.system_messages = []
+        self.MESSAGE_DURATION = 3000 # 3 secondes
 
         # Gestion de la pioche dynamique
         self.modeles_disponibles = self.tous_les_modeles() 
@@ -109,7 +112,6 @@ class Game:
         self.LIGHT_BLUE = (150, 200, 255)   # Couleur claire pour le texte/cadre
         self.DARK_BLUE = (0, 50, 150)       # Couleur foncée pour le remplissage
 
-        
         # État de la Sélection de Pièce (affichage en bas à droite)
         self.is_selecting_room = False 
         self.current_room_options = [] # Liste des 3 pièces tirées au sort (objets Room)
@@ -117,6 +119,59 @@ class Game:
         self.target_row = 0
         self.target_col = 0
         self.last_move_dir_str = None
+    
+    #Methodes pour les messages
+    def add_message(self, message:str,color=(255,255,100)):
+        """
+        Ajoute un message système à afficher
+        """
+        timestamp = pygame.time.get_ticks() + self.MESSAGE_DURATION
+        self.system_messages.append((message, timestamp, color))
+        print(f"[GAME] {message}")
+    
+    def draw_system_messages(self, screen):
+        """Dessine les messages système à l'écran"""
+        current_time = pygame.time.get_ticks()
+        
+        # Supprime les messages expirés
+        self.system_messages = [
+            (msg, ts, col) for msg, ts, col in self.system_messages 
+            if ts > current_time
+        ]
+        
+        # Dessine les messages actifs
+        y_offset = 350
+        for message, timestamp, color in self.system_messages:
+            text_surface = self.font_medium.render(message, True, color)
+            screen.blit(text_surface, (500, y_offset))
+            y_offset += 35
+    
+    def collect_item(self,item_name:str):
+        """
+        Collecte un objet et met à jour l'inventaire
+        """
+        item_effects = {
+            "cle": ("Trouvé une Clé!", lambda: self.inventaire.modifier_cles(1)),
+            "gemme": ("Trouvé un gemme!", lambda: self.inventaire.modifier_gemmes(1)),
+            "or": ("Trouvé de l'Or!", lambda: self.inventaire.modifier_or(1)),
+            "dé": ("Trouvé un dé!", lambda: self.inventaire.modifier_des(1)),
+            "pomme": ("Trouvé une Pomme! (+2 pas)!", lambda: self.inventaire.modifier_pas(2)),
+            "banane": ("Trouvé une Banane! (+3 pas)!", lambda: self.inventaire.modifier_pas(3)),
+            "fruit": ("Trouvé un Fruit! (+2 pas)", lambda: self.inventaire.modifier_pas(2)),
+            "shovel": ("Trouvé une pelle!", lambda: setattr(self.inventaire, 'possede_pelle', True)),
+            "marteau": ("Trouvé un Marteau!", lambda: setattr(self.inventaire, 'possede_marteau', True)),
+            "sledgehammer": ("Trouvé un Marteau!", lambda: setattr(self.inventaire, 'possede_marteau', True)),
+            "kit de crochetage": ("Trouvé un kit de crochetage!", lambda: setattr(self.inventaire, 'possede_kit_crochetage', True)),
+            "metal detector": ("Trouvé Détecteur de Métaux!", lambda: setattr(self.inventaire, 'possede_detecteur_metaux', True)),
+            "patte de lapin": ("Trouvé Patte de Lapin!", lambda: setattr(self.inventaire, 'possede_patte_lapin', True)),
+        }
+
+        if item_name in item_effects:
+            message, action = item_effects[item_name]
+            action()
+            self.add_message(message,(100,255,100))
+        else:
+            self.add_message(f"Trouvé {item_name}", (200, 200, 100))
 
     # Gestion du catalogue et de la pioche
     
@@ -136,7 +191,7 @@ class Game:
     def ajouter_pieces_au_catalogue(self, noms_pieces: list):
         """ Ajoute une ou plusieurs pièces à la pioche disponible (pour l'effet 'The pool'). """
         self.pioche_disponible.extend(noms_pieces)
-        print(f"Catalogue mis à jour : {noms_pieces} ajoutées.")
+        self.add_message(f"Catalogue mis à jour : {len(noms_pieces)} pièces ajoutées!", (100, 255, 100))
     
     def tirer_pieces(self, nombre_options: int = 3, r_cible: int = 0) -> list:
         """ tirer aleatoirement des pieces dans la pioche"""
@@ -161,7 +216,7 @@ class Game:
             
             noms = [nom for nom in self.pioche_disponible if nom not in options]
             
-            # --- Utilisation du Cache pour les Poids (RAPIDE) ---
+            # Utilisation du Cache pour les Poids (RAPIDE)
             poids = [self.piece_metadata_cache.get(nom, {}).get('poids', 0) for nom in noms]
             total_poids = sum(poids)
             
@@ -190,7 +245,7 @@ class Game:
         # Dessiner le cadre et les lignes du quadrillage (look Blueprint)
         BLUE_LINE = self.BLUEPRINT_BLUE
 
-        # --- 1. CADRE EXTÉRIEUR DE LA ZONE DE JEU (NOUVEAU) ---
+        # CADRE EXTÉRIEUR DE LA ZONE DE JEU
         GRID_WIDTH_TOTAL = self.grid_width * title_size
         GRID_HEIGHT_TOTAL = self.grid_height * title_size
         # Le cadre doit être ajusté pour ne pas empiéter sur le menu de sélection en bas.
@@ -241,6 +296,8 @@ class Game:
         # Dessiner le message d'interaction s'il est actif
         if self.is_interacting and pygame.time.get_ticks() < self.message_timer:
             self.draw_interaction_prompt(screen)
+
+        self.draw_system_messages(screen)
 
     def draw_ui(self,screen):
         """
@@ -408,16 +465,36 @@ class Game:
                     self.message_timer = pygame.time.get_ticks() + 10000 # 10 secondes pour répondre
                     return # Un seul dig spot à la fois
                 elif not self.inventaire.possede_pelle:
-                    self.interaction_message = "Il y a un endroit à creuser, mais il vous faut une Pelle."
-                    self.message_timer = pygame.time.get_ticks() + 3000
+                    self.add_message("Il vous faut une Pelle pour creuser!", (255, 100, 100))
+                    #self.interaction_message = "Il y a un endroit à creuser, mais il vous faut une Pelle."
+                    #self.message_timer = pygame.time.get_ticks() + 3000
                     return
 
                 elif obj.est_utilise:
-                    self.interaction_message = "Cet endroit a déjà été creusé."
-                    self.message_timer = pygame.time.get_ticks() + 3000
+                    self.add_message("Cet endroit a déjà été creusé.", (150, 150, 150))
+                    #self.interaction_message = "Cet endroit a déjà été creusé."
+                    #self.message_timer = pygame.time.get_ticks() + 3000
                     return
-        self.interaction_message = "Rien d'interactif"
-        self.message_timer = pygame.time.get_ticks() + 3000
+        
+        #Vérifier les objets collectables
+        collected_something = False
+        items_to_remove = []
+
+        for item in current_room.objets :
+            if isinstance(item,str) :
+                collected_something = True
+                items_to_remove.append(item)
+                self._collect_item(item)
+
+        #Retirer les objets collectés
+        for item in items_to_remove:
+            current_room.objets.remove(item)
+        
+        if not collected_something:
+            self.add_message("Rien d'interactif ici.", (150, 150, 150))
+
+        #self.interaction_message = "Rien d'interactif"
+        #self.message_timer = pygame.time.get_ticks() + 3000
     
     def digging(self):
         """
@@ -432,41 +509,41 @@ class Game:
         result = dig_spot.effectuer_creusage(self.player)
 
         if result == "nothing":
-            self.interaction_message = "Vous creusez... et ne trouvez rien."
+            self.add_message("Vous creusez... et ne trouvez rien.")
         elif result == "no_shovel":
-            self.interaction_message = "Erreur: vous n'avez pas de pelle."
+            self.add_message("Erreur: vous n'avez pas de pelle.")
         elif result == "already_used":
-            self.interaction_message = "Cet endroit est déjà vide."
+            self.add_message("Cet endroit est déjà vide.")
         else: # Un objet a été trouvé (result est le nom de l'objet)
-            if result == "cle":
-                self.inventaire.modifier_cles(1)
-            elif result == "gemme":
-                self.inventaire.modifier_gemmes(1)
-            elif result == "or":
-                self.inventaire.modifier_or(1)
-            elif result == "dé":
-                self.inventaire.modifier_des(1)
-            elif result == "pomme":
-                self.inventaire.modifier_pas(2)
-            elif result == "banane":
-                self.inventaire.modifier_pas(3)
-            elif result == "shovel":
-                self.inventaire.possede_pelle = True
-            elif result == "marteau":
-                self.inventaire.possede_marteau = True
-            elif result == "kit de crochetage":
-                self.inventaire.possede_kit_crochetage = True
-            elif result == "détecteur de métaux":
-                self.inventaire.possede_detecteur_metaux = True
-            elif result == "patte de lapin":
-                self.inventaire.possede_patte_lapin = True
+            #if result == "cle":
+            #    self.inventaire.modifier_cles(1)
+            #elif result == "gemme":
+            #    self.inventaire.modifier_gemmes(1)
+            #elif result == "or":
+            #    self.inventaire.modifier_or(1)
+            #elif result == "dé":
+            #    self.inventaire.modifier_des(1)
+            #elif result == "pomme":
+            #    self.inventaire.modifier_pas(2)
+            #elif result == "banane":
+            #    self.inventaire.modifier_pas(3)
+            #elif result == "shovel":
+            #    self.inventaire.possede_pelle = True
+            #elif result == "marteau":
+            #    self.inventaire.possede_marteau = True
+            #elif result == "kit de crochetage":
+            #    self.inventaire.possede_kit_crochetage = True
+            #elif result == "détecteur de métaux":
+            #    self.inventaire.possede_detecteur_metaux = True
+            #elif result == "patte de lapin":
+            #    self.inventaire.possede_patte_lapin = True
 
-            self.interaction_message = f"Vous avez trouvé un(e) {result} !"
+            self._collect_item(result)
         
         #Reinitialiser l'etat d'interaction
         self.is_interacting = False
         self.current_interaction_object = None
-        self.message_timer = pygame.time.get_ticks() + 3000
+        #self.message_timer = pygame.time.get_ticks() + 3000
 
 
     def try_move_player(self, direction):
@@ -518,16 +595,14 @@ class Game:
             if not chosen_room.visitee:
                 chosen_room.visitee = True
 
-
         # 2. Vérifier si la pièce existe déjà et si la porte est ouverte (non implémenté)
         if self.manoir_grid[r_cible][c_cible] is not None:
             # Effectuer le déplacement
             self.current_row, self.current_col = r_cible, c_cible
-            self.inventaire.modifier_pas(1) # Perte d'un pas
-            print(f"Déplacement vers ({c_cible}, {r_cible}). Pas restants: {self.inventaire.pas}")
+            self.inventaire.modifier_pas(-1) # Perte d'un pas
+            self.add_message(f"Déplacé vers {chosen_room.nom}. Pas: {self.inventaire.pas}", (150, 200, 255))
         else:
-            print("Déplacement impossible : la porte n'est pas ouverte. Utilisez ESPACE pour interagir.")
-
+            self.add_message("Porte non ouverte. Utilisez ESPACE pour interagir.", (255, 150, 100))
 
     def check_and_open_door(self, direction):
         """
@@ -560,16 +635,16 @@ class Game:
         can_open = False
         if lock_level == 0:
             can_open = True
-            print("Porte déverrouillée (Niveau 0).")
+            self.add_message("Porte déverrouillée (Niveau 0)!", (100, 255, 100))
         elif self.inventaire.cles > 0:
             self.inventaire.modifier_cles(-1)
             can_open = True
-            print(f"Clé dépensée. Porte déverrouillée (Niveau {lock_level}).")
+            self.add_message(f"Clé utilisée. Porte déverrouillée (Niveau {lock_level})!", (100, 255, 100))
         elif lock_level == 1 and self.inventaire.possede_objet("Kit de crochetage"):
             can_open = True
-            print("Kit de crochetage utilisé. Porte déverrouillée (Niveau 1).")
+            self.add_message("Kit de crochetage utilisé. Porte déverrouillée!", (100, 255, 100))
         else:
-            print(f"La porte est verrouillée (Niveau {lock_level}). Il vous faut une clé.")
+            self.add_message(f"Porte verrouillée (Niveau {lock_level}). Il faut une clé!", (255, 100, 100))
         
         # 3. Si l'ouverture est réussie, démarrer la sélection
         if can_open:
@@ -598,7 +673,7 @@ class Game:
         self.selected_option_index = 0
 
         if self.current_room_options:
-            print(f"Ouverture de porte vers {door_direction}. Choix de pièce activé avec {len(self.current_room_options)} options")
+            self.add_message(f"Choisissez parmi {len(self.current_room_options)} pièces!", (255, 200, 100))
         else :
             print("Erreur: Aucune pièce n'a pu être tirée.")
             self.is_selecting_room = False
@@ -637,8 +712,7 @@ class Game:
         
         # 2. Vérifier les limites de la grille (Mur)
         if not (0 <= r_cible < self.grid_height and 0 <= c_cible < self.grid_width):
-            self.system_message = "Déplacement impossible : il y a un mur."
-            self.message_timer = pygame.time.get_ticks() + 2000 
+            self.add_message("Impossible de bouger : il y a un mur!", (255, 100, 100)) 
             return
 
         # 3. Vérifier si la pièce cible existe déjà
@@ -661,7 +735,9 @@ class Game:
         
         # Vérification du coût en gemmes
         if self.inventaire.gemmes >= chosen_room.cout_gemmes:
-            self.inventaire.modifier_gemmes(-chosen_room.cout_gemmes)
+            if chosen_room.cout_gemmes > 0:
+                self.inventaire.modifier_gemmes(-chosen_room.cout_gemmes)
+                self.add_message(f"Dépensé {chosen_room.cout_gemmes} gemmes", (255, 200, 100))
             
             # Ajout de la pièce à l'emplacement cible (défini par check_and_open_door)
             self.manoir_grid[self.target_row][self.target_col] = chosen_room 
@@ -678,28 +754,49 @@ class Game:
             self.current_row, self.current_col = self.target_row, self.target_col
 
             # APPLICATION DE L'EFFET D'ENTRÉE
-            is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
+            #is_entry_effect = hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree"
 
-            if is_entry_effect:
+            #if is_entry_effect:
                 # Si l'effet est permanent (Chapel), on déclenche l'effet sans condition de visite.
+            #    if chosen_room.nom == "Chapel":
+             #       chosen_room.appliquer_effet(self)
+                # Sinon (Bedroom, Master Bedroom), l'effet se déclenche à la première entrée
+              #  else:
+               #     chosen_room.appliquer_effet(self)
+
+            # Marquer comme visitée (uniquement si l'effet n'est PAS Chapel/permanent)
+            #if chosen_room.nom != "Chapel":
+             #   chosen_room.visitee = True
+
+            #chosen_room.visitee = True
+            #self.inventaire.modifier_pas(-1)
+            #print(f"Pièce choisie : {chosen_room.nom} ajoutée au manoir. Déplacement effectué.")
+            #self.check_for_loss_condition()
+            
+        #else:
+         #   print("Pas assez de gemmes pour cette pièce. Veuillez en choisir une autre ou appuyer sur une flèche pour annuler/changer.")
+
+            if hasattr(chosen_room, 'moment_effet') and chosen_room.moment_effet == "entree":
+                print(f"[DEBUG] Application effet entrée pour: {chosen_room.nom}")
+                # Chapel s'applique à chaque fois, les autres à la première entrée
                 if chosen_room.nom == "Chapel":
                     chosen_room.appliquer_effet(self)
-                # Sinon (Bedroom, Master Bedroom), l'effet se déclenche à la première entrée
                 else:
                     chosen_room.appliquer_effet(self)
 
-            # Marquer comme visitée (uniquement si l'effet n'est PAS Chapel/permanent)
+            # Marquer comme visitée (sauf Chapel qui peut être visitée plusieurs fois pour l'effet)
             if chosen_room.nom != "Chapel":
                 chosen_room.visitee = True
 
-            chosen_room.visitee = True
             self.inventaire.modifier_pas(-1)
-            print(f"Pièce choisie : {chosen_room.nom} ajoutée au manoir. Déplacement effectué.")
-            #self.check_for_loss_condition()
+            
+            # Message de placement de pièce
+            self.add_message(f"{chosen_room.nom} ajoutée! Entrée dans la pièce.", (100, 255, 150))
+
             
         else:
-            print("Pas assez de gemmes pour cette pièce. Veuillez en choisir une autre ou appuyer sur une flèche pour annuler/changer.")
-    
+            # Message d'erreur de gemmes
+            self.add_message(f"Besoin de {chosen_room.cout_gemmes} gemmes (vous avez {self.inventaire.gemmes})", (255, 100, 100))
     
     def align_room_with_door(self, room: Room, move_dir_str: str):
         """ 
@@ -739,7 +836,7 @@ class Game:
                     pieces_existantes.append(room)
 
         if not pieces_existantes:
-            print("Aucune autre pièce disponible pour disperser l'or.")
+            self.add_message("Aucune autre pièce disponible pour disperser l'or.", (200, 200, 100))
             return
 
         import random
@@ -751,6 +848,8 @@ class Game:
             # Ajouter l'objet "or" à sa liste d'objets (pour que le joueur le ramasse plus tard)
             piece_cible.objets.append("or")
             print(f"  -> Ajout d'une pièce d'or à : {piece_cible.nom}")
+
+        self.add_message(f"{quantite} pièces d'or dispersées dans le manoir!", (255, 215, 0))
 
     #pour mettre à jour la map quand on choisit une salle
     def update(self):
