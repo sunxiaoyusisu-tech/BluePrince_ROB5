@@ -38,38 +38,57 @@ class Porte:
     
 
     def a_porte(self, direction: Direction) -> bool:
-        """Vérifie si une porte existe dans la direction donnée"""
+        
+        """
+        Vérifie si une porte existe dans la direction donnée.
+
+        Args:
+            direction (Direction): La direction à vérifier (UP, DOWN, RIGHT, LEFT).
+
+        Returns:
+            bool: True si une porte est présente, False sinon.
+        """
+
         return self.positions[direction.value] == 1
     
     def a_ete_franchie(self, direction: Direction) -> bool:
-        """Vérifie si une porte a été franchie (exemple d'utilisation future)"""
+        
+        """
+        Marque une porte comme franchie (méthode de transition).
+        
+        Args:
+            direction (Direction): La direction de la porte franchie.
+        """
+
         self.franchissement[direction.value] = True
         pass
    
     
     def definir_verrouillage(self, direction: Direction, niveau: int):
-        """
-        Définit le niveau de verrouillage d'une porte
         
-        Args:
-            direction: Direction de la porte
-            niveau: 0 (déverrouillée), 1 (verrouillée), 2 (double tour)
         """
+        Définit le niveau de verrouillage d'une porte.
+
+        Args:
+            direction (Direction): Direction de la porte.
+            niveau (int): 0 (déverrouillée), 1 (verrouillée), 2 (double tour).
+        """
+
         if self.a_porte(direction):
             self.niveaux_verrouillage[direction.value] = niveau
 
     def rotate_clockwise(self, quarter_turns:int= 1):
-        """Fait tourner les portes de 90° dans le sens horaire."""
+        
+        """
+        Fait tourner les positions des portes de 90° dans le sens horaire.
+
+        Args:
+            quarter_turns (int): Nombre de rotations de 90° (par défaut 1).
+        """
+
         for _ in range(quarter_turns):
             up,down,right,left =self.positions
             self.positions = [left,right,up,down]
-#class CouleurPiece(Enum):
-#    JAUNE = "jaune"       # magasins
-#    VERTE = "verte"       # jardins d’intérieur
-#    VIOLETTE = "violette" # chambres (rendre des pas)
-#    ORANGE = "orange"     # couloirs (souvent beaucoup de portes)
-#    ROUGE = "rouge"       # effets indésirables
-#    BLEUE = "bleue"       # communes, variées
 
 class OutilCreusage(Enum):
     PELLE = auto()             # Shovel
