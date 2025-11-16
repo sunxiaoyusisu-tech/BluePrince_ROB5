@@ -46,7 +46,8 @@ python main.py
 1. W / A / S / D : Sélectionner la direction (Haut / Gauche / Bas / Droite).
 2. ESPACE : Ouvrir une nouvelle porte ou se déplacer dans la direction sélectionnée.
 3. FLÈCHES GAUCHE / DROITE : Naviguer dans les options de sélection de pièce.
-4. R : (Pendant la sélection) Utiliser un Dé pour relancer les 3 options de pièce
+4. R : (Pendant la sélection) Utiliser un Dé pour relancer les 3 options de pièce.
 5. ESC : Quitter le jeu ou annuler une interaction.
-6. C : Interagir avec la pièce actuelle pour Creuser
-7. O : Interagir avec la pièce actuelle pour Ouvrir un coffre (locked trunk)。
+6. C : Interagir avec la pièce actuelle pour Creuser.
+7. O : Interagir avec la pièce actuelle pour Ouvrir un coffre.
+8. F : Traverser un mur.

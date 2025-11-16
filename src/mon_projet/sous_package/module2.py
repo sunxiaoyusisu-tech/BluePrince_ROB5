@@ -4,7 +4,7 @@ from src.mon_projet.module1 import*
 from src.mon_projet.objets import*
 import random
 from src.mon_projet.objets import (
-    PasseMuraille  # <-- Assurez-vous que ceci est ajouté
+    PasseMuraille
 )
 
 def random_objects_selection(objets_possibles, probabilites):
@@ -352,7 +352,7 @@ def creer_piece(type_piece: str) -> Room:
     }
     
     # Contenu possible pour les EndroitACreuser
-    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé","boussole magique","boussole magique","boussole magique"]
+    DIG_SPOT_contenu = ["gemme","cle","or","pomme","banane","dé"]
     classe_piece = classes.get(type_piece, Room) #classe a instantier/ Room par defaut
 
 

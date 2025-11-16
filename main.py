@@ -59,7 +59,6 @@ while running:
     #mettre à jour la fenetre
     pygame.display.flip()
     
-
     # Ferme la fenetre si le joueur clique sur croix
     for event in pygame.event.get():
         
@@ -132,6 +131,7 @@ while running:
 
                 elif event.key == pygame.K_r: 
                     game.use_dice_for_reroll()
+
             # CONTRÔLES DE JEU (Mouvement et Interaction)
             else:
                 # W/A/S/D pour sélectionner la direction de la porte/du mouvement
@@ -177,23 +177,8 @@ while running:
                         for obj in current_room.objets:
                             if isinstance(obj,Coffre):
                                 game.current_interaction_object = obj
-                                game.is_interacting = True
-                                # Afficher un message pour confirmer
-                                print("Appuyez sur ENTRÉE pour ouvrir le coffre, ou ESC pour annuler")
+                                # Lancer la vérification (où le message est créé si les outils sont là)
+                                game.start_interaction_manual_prompt(obj) 
                                 break
-
-                # ENTRÉE pour interagir avec la case actuelle (Creuser / Ramasser)
-                #elif event.key == pygame.K_RETURN:
-                    # Récupérer la pièce actuelle
-                #    current_room = game.manoir_grid[game.current_row][game.current_col]
-                #    if current_room:
-                        # Tenter de commencer une interaction
-                #        game.start_interaction(current_room)
-
-                # ENTRÉE pour le mouvement (facultatif, si ESPACE est trop chargé)
-                #elif event.key == pygame.K_RETURN:
-                    # Tenter de se déplacer dans la direction courante
-                 #   game.try_move_player(direction,screen)
-            
 
 

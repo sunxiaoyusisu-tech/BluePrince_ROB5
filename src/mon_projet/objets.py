@@ -241,20 +241,6 @@ class Coffre(ObjetInteractif):
             ("rien", 0.07)              # 7% - rien
         ]
 
-        # Effet de la boussole 
-        if game.inventaire.possede_boussole_magique:
-            print("Boussole Magique activée! Augmentation de la chance de Clés.")
-            coffre_contenu = [
-                ("or", 0.20),               # 20%
-                ("or", 0.10),               # 10%
-                ("gemme", 0.20),            # 20%
-                ("cle", 0.25),              # 25% (AUGMENTÉ)
-                ("dé", 0.10),               # 10%
-                ("pomme", 0.08),            # 8%
-                ("banane", 0.05),           # 5%
-                ("rien", 0.02)              # 2% (RÉDUIT)
-            ]
-
         # Tirer un objet selon les probabilités
         objets = [item[0] for item in coffre_contenu]
         probas = [item[1] for item in coffre_contenu]

@@ -1,14 +1,27 @@
 from typing import List, Optional
-# On importe les types d'objets, pas les instances
-from src.mon_projet.objets import*
+import numpy as np
+from src.mon_projet.module1 import*
 
 """
 Inventaire du joueur : gestion des ressources et des objets permanents.
 """
 
+DIR_FROM_STR = {
+    "haut": Direction.UP,
+    "bas": Direction.DOWN,
+    "droite": Direction.RIGHT,
+    "gauche": Direction.LEFT,
+}
+
 class Inventaire:
-    """Objets consommables + Objets permanents"""
+    
+    """
+    Gère tous les objets consommables (pas, or, gemmes, clés, dés) 
+    et les objets permanents du joueur.
+    """
+
     def __init__(self):
+
         # Objets consommables
         self.pas:int=70
         self.pieces_or:int=5
@@ -22,15 +35,22 @@ class Inventaire:
         self.possede_kit_crochetage : bool = False
         self.possede_detecteur_metaux : bool = False
         self.possede_patte_lapin: bool = False
-        self.possede_boussole_magique : bool = False
         self.passe_muraille: int = 1
         self.PASSE_MURAILLE_MAX: int = 1
-        #self.objets_permanents: List[ObjetPermanent] = []
 
     # operation sur pas
     def modifier_pas(self,n:int) -> bool :
-        """ (positif = gain, négatif = perte). 
-        Retourne True si l'opération est valide (pas >= 0) """
+        
+        """ 
+        Modifie le nombre de pas. 
+
+        Args:
+            n (int): La quantité de pas à ajouter (positif) ou retirer (négatif).
+
+        Returns:
+            bool: True si l'opération est valide (pas >= 0), False sinon (défaite).
+        """
+
         self.pas += n
         if self.pas < 0:
             self.pas = 0
@@ -39,6 +59,17 @@ class Inventaire:
     
     # operation sur gold
     def modifier_or(self,n:int) -> bool : 
+
+        """ 
+        Modifie le nombre de pièces d'or.
+
+        Args:
+            n (int): La quantité d'or à ajouter ou retirer.
+
+        Returns:
+            bool: True si le solde final est >= 0, False si l'achat échoue.
+        """
+
         # Retourne True si le solde final est >= 0
         self.pieces_or += n
         return self.pieces_or >= 0
@@ -46,26 +77,70 @@ class Inventaire:
     
     # operation sur gemmes
     def modifier_gemmes(self,n:int) -> bool :
+
+        """ 
+        Modifie le nombre de gemmes.
+
+        Args:
+            n (int): La quantité de gemmes à ajouter ou retirer.
+
+        Returns:
+            bool: True si le solde final est >= 0.
+        """
+
         self.gemmes +=n
         return self.gemmes >=0
 
 
-    # operation sur cles
+    # operation sur clés
     def modifier_cles(self,n: int) -> bool:
-        """ modifie le nb de cles. Retourne True si le solde final est >= 0 """
+
+        """ 
+        Modifie le nombre de clés.
+
+        Args:
+            n (int): La quantité de clés à ajouter ou retirer.
+
+        Returns:
+            bool: True si le solde final est >= 0.
+        """
+        
         self.cles +=n
         return self.cles >=0
     
-    # operation sur des
+    # operation sur dés
     def modifier_des(self,n:int) -> bool :
-        """Modifie les dés. Retourne True si le solde final est >= 0."""
+
+        """
+        Modifie le nombre de dés.
+
+        Args:
+            n (int): La quantité de dés à ajouter ou retirer.
+
+        Returns:
+            bool: True si le solde final est >= 0.
+        """
+        
         self.des += n
         return self.des >= 0
+    
     def modifier_passe_muraille(self, n: int) -> bool:
+
         """
-        Modifie les Passes-muraille.
-        Retourne True si l'opération réussit, False si on dépasse le max.
+        Modifie le nombre de Passes-muraille possédés.
+
+        Gère l'ajout jusqu'à une limite maximale (PASSE_MURAILLE_MAX) et la soustraction
+        jusqu'à zéro.
+
+        Args:
+            n (int): La quantité de Passes-muraille à ajouter (positif) ou à retirer (négatif).
+
+        Returns:
+            bool: True si l'opération réussit (ajout ou retrait dans les limites), 
+              False si l'ajout est impossible car le maximum est atteint, ou si 
+              le retrait est impossible car le stock est déjà vide.
         """
+
         # Si on essaie d'en AJOUTER (n > 0)
         if n > 0:
             if self.passe_muraille >= self.PASSE_MURAILLE_MAX:
@@ -83,7 +158,17 @@ class Inventaire:
             return True # L'utilisation réussit
 
     def possede_objet(self,nom_objet = str) -> bool :
-        "verifie si le joueur possede un objet permanent precis"
+
+        """
+        Vérifie si le joueur possède un objet permanent précis.
+
+        Args:
+            nom_objet (str): Le nom de l'objet permanent (ex: "Kit de crochetage").
+
+        Returns:
+            bool: True si le joueur possède l'objet, False sinon.
+        """
+        
         if nom_objet == "Kit de crochetage":
             return self.possede_kit_crochetage
         if nom_objet == "Pelle":
@@ -94,15 +179,26 @@ class Inventaire:
             return self.possede_detecteur_metaux
         if nom_objet == "Patte de lapin":
             return self.possede_patte_lapin
-        if nom_objet == "Boussole Magique":
-            return self.possede_boussole_magique
         return False
     
 
 def use_wall_pass(self, direction):
+        
         """
-        Tente d'utiliser un Passe-muraille pour CRÉER une porte là où il y a un mur.
+        Tente d'utiliser un Passe-muraille pour CRÉER une porte dans la pièce actuelle
+        vers une case non découverte (mur), puis lance le processus de sélection de pièce.
+
+        L'action échoue si :
+        - L'objet n'est pas possédé.
+        - Une porte existe déjà dans cette direction.
+        - La direction mène hors de la grille.
+        - La case cible est déjà occupée par une pièce.
+
+        Args:
+            direction (str): La direction dans laquelle tenter de créer la porte 
+                         ("haut", "bas", "droite", "gauche").
         """
+
         # 1. Vérifier si on a l'objet
         if self.inventaire.passe_muraille <= 0:
             self.add_message("Vous n'avez pas de Passe-muraille.", (255, 100, 100))
@@ -132,8 +228,7 @@ def use_wall_pass(self, direction):
             self.add_message("Cet espace est déjà occupé!", (255, 100, 100))
             return
 
-        # 4. Action ! (Consommer l'objet)
-        # On essaie de consommer l'objet
+        # 4. On essaie de consommer l'objet
         consommation_reussie = self.inventaire.modifier_passe_muraille(-1)
         
         if not consommation_reussie:
@@ -143,8 +238,7 @@ def use_wall_pass(self, direction):
 
         self.add_message("Passe-muraille utilisé! Un passage s'ouvre.", (255, 215, 0))
 
-        # 5. (La magie est ici)
         current_room.portes.positions[direction_enum.value] = 1 
         
-        # 6. Réutiliser la logique de porte existante !
+        # Réutiliser la logique de porte existante
         self.check_and_open_door(direction)

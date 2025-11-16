@@ -656,7 +656,7 @@ class Game:
             if isinstance(obj,Coffre):
                 if obj.est_utilise :
                     self.add_message("Ce coffre a déjà été ouvert.", (150, 150, 150))
-                continue
+                    continue
             
             # Vérifier si on peut ouvrir
             if self.inventaire.possede_marteau:
@@ -672,7 +672,7 @@ class Game:
                 self.message_timer = pygame.time.get_ticks() + 10000
                 return
             else:
-                self.add_message("Besoin d'une clé ou d'un marteau!", (255, 100, 100))
+                self.add_message("Besoin d'un marteau!", (255, 100, 100))
                 return
 
         #Trouver un objet interactif (EndroitACreuser)
@@ -1243,8 +1243,8 @@ class Game:
             return False
         elif self.inventaire.pas <= 0:
             return True
-        elif self.inventaire.cles <= 0 and not self.is_selecting_room:
-            return True
+       #elif self.inventaire.cles <= 0 and not self.is_selecting_room:
+            #return True
         #sortir du jeu ou redémarrer
 
     def animation_defaite(self,screen):
