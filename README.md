@@ -1,9 +1,11 @@
 # BluePrince_ROB5
 Projet POO 2025 – Sorbonne ROB – Jeu Blue Prince en Python/Pygame
+
 ## Introduction
 Le jeu à implémenter est un jeu qui se joue en solo. Le joueur se situe dans un manoir comportant 45 pièces disposées dans une grille de dimensions (5 x 9). Ce manoir est "magique", et les pièces qui le composent sont choisies par le joueur au fur et à mesure du jeu.
 
-Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose de choisir parmi trois salles tirées au sort celle qui remplira cette position dans la grille. Le but du jeu est de progressivement construire un chemin menant vers la dernière pièce du manoir, située tout en haut de la grille.
+Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose de choisir parmi trois salles tirées au sort, celle qui remplira cette position dans la grille. Le but du jeu est de progressivement construire un chemin menant vers la dernière pièce du manoir, située tout en haut de la grille.
+
 ## Fonctionnalités
 1. Qualité de l'interface graphique et facilité de prise en main.
 2. Déplacement dans le manoir et ouverture d'une porte.
@@ -20,8 +22,14 @@ Quand le joueur ouvre une porte menant vers une nouvelle pièce, le jeu propose 
 13. Kit de crochetage et ouverture des portes de niveau 1.
 14. Marteau et ouverture des coffres
 15. Pelle et possibilit´e de creuser dans des ”endroits ou creuser”
+
+## Auteurs 
+sunxiaoyusisu-tech sur github : Xiaoyu SUN, numéro étudiant : 
+ChloeSalameh sur github : Chloé SALAMEH, numéro étudiant : 21211219
+Batmaaaan-4848 : Léa BOUBLIL, numéro étudiant : 
+
 ## Lancement
- Prérequis
+Prérequis
 Pour lancer ce projet, vous aurez besoin de Python 3 et des bibliothèques suivantes :
 . pygame
 . numpy
@@ -33,6 +41,7 @@ Instructions
 2. Clonez ce dépôt.
 3. Exécutez le fichier main.py depuis votre terminal :
 python main.py
+
 ## Commandes
 1. W / A / S / D : Sélectionner la direction (Haut / Gauche / Bas / Droite).
 2. ESPACE : Ouvrir une nouvelle porte ou se déplacer dans la direction sélectionnée.
