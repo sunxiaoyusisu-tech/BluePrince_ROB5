@@ -825,6 +825,10 @@ class Game:
         if not self.is_selecting_room:
             self.add_message("Vous ne pouvez utiliser le dé que lors de la sélection de pièce.", (255, 100, 100))
             return
+        if self.last_move_dir_str is None:
+            self.add_message("Erreur: Direction de la porte inconnue pour le reroll.", (255, 0, 0))
+            return
+        
         # Check de
         if self.inventaire.des>0:
             self.inventaire.modifier_des(-1)
@@ -832,17 +836,18 @@ class Game:
         # Tirer de nouvelles pieces
             new_room_names=self.tirer_pieces(
                     nombre_options=3, 
-                    r_cible=self.target_row    
-            )
+                    r_cible=self.target_row
+                    )
             try:
-                
-                    self.current_room_options = [creer_piece(name) for name in new_room_names]
+                self.current_room_options = [creer_piece(name) for name in new_room_names]
             except NameError:
-                
-                    self.current_room_options = new_room_names 
-                    self.add_message("Erreur: Impossible de créer les pièces. Vérifiez 'creer_piece'.", (255, 0, 0))
-
-
+                self.current_room_options = new_room_names 
+                self.add_message("Erreur: Impossible de créer les pièces. Vérifiez 'creer_piece'.", (255, 0, 0))
+                return
+            for room in self.current_room_options:
+                # Utilise la direction de porte sauvegardée lors de l'ouverture initiale
+                self.align_room_with_door(room, self.last_move_dir_str)
+            # --------------------------------------------------------------------
             self.selected_option_index = 0
             
             if not self.current_room_options:
