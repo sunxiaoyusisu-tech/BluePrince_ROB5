@@ -22,6 +22,7 @@ class Inventaire:
         self.possede_kit_crochetage : bool = False
         self.possede_detecteur_metaux : bool = False
         self.possede_patte_lapin: bool = False
+        self.possede_boussole_magique : bool = False
 
         #self.objets_permanents: List[ObjetPermanent] = []
 
@@ -72,7 +73,8 @@ class Inventaire:
             return self.possede_detecteur_metaux
         if nom_objet == "Patte de lapin":
             return self.possede_patte_lapin
+        if nom_objet == "Boussole Magique":
+            return self.possede_boussole_magique
         return False
-
     
 

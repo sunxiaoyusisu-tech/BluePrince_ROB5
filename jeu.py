@@ -92,7 +92,7 @@ class Game:
         self.ajouter_pieces_au_catalogue(["Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
                                          "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room","Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
                                          "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room","Spare Room", "Spare Room", "Nook", "Chapel","The pool","Master Bedroom","Bedroom","Chapel","Nook","Music Room",
-                                         "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room"])
+                                         "Garage","Chamber of mirrors","Veranda","Furnace","Greenhouse","Office","Study","Drawing Room", "Portail Mystique","Portail Mystique"])
 
 
         self.manoir_grid[8][2] = creer_piece("Entrance Hall")
@@ -167,6 +167,7 @@ class Game:
             "kit de crochetage": ("Trouvé un kit de crochetage!", lambda: setattr(self.inventaire, 'possede_kit_crochetage', True)),
             "metal detector": ("Trouvé Détecteur de Métaux!", lambda: setattr(self.inventaire, 'possede_detecteur_metaux', True)),
             "patte de lapin": ("Trouvé Patte de Lapin!", lambda: setattr(self.inventaire, 'possede_patte_lapin', True)),
+            "boussole magique": ("Trouvé Boussole Magique!", lambda: setattr(self.inventaire, 'possede_boussole_magique', True)),
         }
 
         if item_name in item_effects:
@@ -183,7 +184,7 @@ class Game:
         return ["The Foundation", "Entrance Hall", "Spare Room", "Nook", "Garage", "Music Room", 
                 "Drawing Room", "Study", "Sauna", "Coat Check", "Mail Room", 
                 "The pool", "Chamber of mirrors", "Veranda", "Furnace", 
-                "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom"]
+                "Greenhouse", "Office", "Bedroom", "Chapel", "Master Bedroom", "Portail Mystique", "Portail Mystique"]
     
     def initialiser_pioche(self):
         """ Liste initiale des noms de pièces """
@@ -246,6 +247,91 @@ class Game:
             options.append(choix_nom)
             
         return options
+    
+    def calculer_boussole(self):
+        """ Calcule les infos de la boussole"""
+        
+        # Direction optimale vers l'Antechamber
+        current_row = self.current_row
+        current_col = self.current_col
+
+        # Position de l'Antechamber
+        target_row = 0
+        target_col = 2
+
+        direction_optimale = []
+
+        #Direction verticale
+        if current_row > target_row:
+            direction_optimale.append('haut')
+        elif current_row < target_row :
+            direction_optimale.append('bas')
+
+        #Direction horizontale
+        if current_col > target_col : 
+            direction_optimale.append('gauche')
+        elif current_col < target_col :
+            direction_optimale.append('droite')
+        
+        # Analyse des portes adjacentes
+        current_room = self.manoir_grid[current_row][current_col]
+        infos_portes = {}
+        
+        if current_room and current_room.portes:
+            directions = ["haut", "bas", "droite", "gauche"]
+            for i, direction in enumerate(directions):
+                if current_room.portes.positions[i] == 1:
+                    niveau = current_room.portes.niveaux_verrouillage[i]
+                    infos_portes[direction] = niveau
+        return {
+            'direction optimale' : direction_optimale,
+            'infos_portes' : infos_portes,
+            'distance_restante' : abs(current_row - target_row) + abs(current_col - target_col)
+        }
+    
+    def draw_boussole_ui(self,screen,x=1050, y=300):
+        """ Dessine l'interface de la boussole magique """
+        if not self.inventaire.possede_boussole_magique:
+            return
+        
+        infos = self.calculer_boussole()
+    
+        font = self.font_small # Utiliser la police existante
+    
+        # Cadre de la boussole
+        pygame.draw.rect(screen, self.DARK_BLUE, (x - 5, y - 5, 200, 150))
+        pygame.draw.rect(screen, (255, 215, 0), (x - 5, y - 5, 200, 150), 1)
+
+        # Titre
+        titre = self.font_medium.render("Boussole Magique", True, (255, 215, 0))
+        screen.blit(titre, (x, y))
+    
+        # Direction optimale
+        y_offset = 30
+        if infos["direction_optimale"]:
+            dir_text = " - ".join([d.upper() for d in infos["direction_optimale"]])
+            texte = font.render(f"Optimal: {dir_text}", True, (100, 255, 100))
+            screen.blit(texte, (x, y + y_offset))
+            y_offset += 20
+        
+        # Distance restante
+        distance_texte = font.render(f"Distance: {infos['distance_restante']} cases", True, (200, 200, 200))
+        screen.blit(distance_texte, (x, y + y_offset))
+        y_offset += 25
+    
+        # Infos sur les portes
+        if infos["infos_portes"]:
+            portes_texte = font.render("Portes:", True, (200, 200, 200))
+            screen.blit(portes_texte, (x, y + y_offset))
+            y_offset += 20
+        
+        for direction, niveau in infos["infos_portes"].items():
+            symbole = "🔓" if niveau == 0 else "🔒" if niveau == 1 else "🔐"
+            couleur = (100, 255, 100) if niveau == 0 else (255, 255, 100) if niveau == 1 else (255, 100, 100)
+            texte = font.render(f"  {direction}: {symbole}", True, couleur)
+            screen.blit(texte, (x, y + y_offset))
+            y_offset += 20
+
     
     def draw_manoir_grid(self,screen):
         """
@@ -367,8 +453,9 @@ class Game:
         ("Marteau", self.inventaire.possede_marteau),
         ("Kit de crochetage", self.inventaire.possede_kit_crochetage),
         ("Détecteur de métaux", self.inventaire.possede_detecteur_metaux),
-        ("Patte de lapin", self.inventaire.possede_patte_lapin)
-    ]
+        ("Patte de lapin", self.inventaire.possede_patte_lapin),
+        ("Boussole Magique", self.inventaire.possede_boussole_magique)
+        ]
 
         # Dessiner la liste des objets permanents
         if any(possede for _, possede in permanents): # Vérifie si au moins un est possédé
@@ -391,6 +478,8 @@ class Game:
             # Aucun objet permanent possédé
             none_text = self.font_medium.render("- Aucun", True, (100, 100, 100))
             screen.blit(none_text, (x_pos + 10, ui_y + hauteur_ligne))
+
+        self.draw_boussole_ui(screen)
 
     def draw_room(self,screen):
         """
