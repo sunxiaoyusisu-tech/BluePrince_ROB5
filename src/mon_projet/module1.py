@@ -6,30 +6,32 @@ from random import random
 import pygame
 
 class Direction(Enum):
-    """Énumération pour les directions des portes"""
+    
+    """Énumération pour les directions des portes (utilisé pour les index)"""
+
     UP = 0
     DOWN = 1
     RIGHT = 2
     LEFT = 3
 
 class Porte:
+
     """
     Classe représentant les portes d'une pièce
-    
-    Attributs:
-        positions: Liste de 4 entiers [up, down, right, left]
-                  1 = porte présente, 0 = pas de porte
-        niveaux_verrouillage: Liste des niveaux de verrouillage pour chaque porte
-                             0 = déverrouillée, 1 = verrouillée, 2 = double tour
     """
     
     def __init__(self, up, down, right, left):
+
         """
-        Initialise les portes d'une pièce
-        
+        Initialise les portes d'une pièce.
+
         Args:
-            up, down, right, left: 1 si porte présente, 0 sinon
+            up (int): 1 si porte vers le haut, 0 sinon.
+            down (int): 1 si porte vers le bas, 0 sinon.
+            right (int): 1 si porte vers la droite, 0 sinon.
+            left (int): 1 si porte vers la gauche, 0 sinon.
         """
+
         self.positions = [up, down, right, left]  # [up, down, right, left]
         self.niveaux_verrouillage = [0, 0, 0, 0]  # Sera défini lors du placement
         self.franchissement = [False, False, False, False]  # Indique si la porte a été franchie
