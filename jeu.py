@@ -218,6 +218,16 @@ class Game:
             
             # Utilisation du Cache pour les Poids (RAPIDE)
             poids = [self.piece_metadata_cache.get(nom, {}).get('poids', 0) for nom in noms]
+            
+            # Nouveau: effet patte de lapin
+            if self.inventaire.possede_patte_lapin:
+                print("patte de lapin activee")
+                for i, nom in enumerate(noms):
+                    rarete = self.piece_metadata_cache.get(nom, {}).get('rarete', 0)
+                    # Si la pièce est rare (Niveau 2 ou 3), on double son poids
+                    if rarete >= 2:
+                        poids[i] *= 2
+            
             total_poids = sum(poids)
             
             if total_poids == 0:

@@ -145,19 +145,30 @@ class EndroitACreuser(ObjetInteractif):
         #else:
         #    print("Rien ici...")
 
-    def effectuer_creusage(self,joueur:'Joueur') -> str : 
+    def effectuer_creusage(self,game) -> str : 
         """
         Effectue le creusage et met à jour l'inventaire si un objet est trouvé 
         """
 
-        if not joueur.inventaire.possede_pelle:
+        if not game.inventaire.possede_pelle:
             return "pas de pelle"
         self.est_utilise = True
         import random
 
-        if random.random() < 0.7:
+        chance_de_trouver = 0.7
+        loot_table = self.contenu_possibles.copy()
+        if game.inventaire.possede_detecteur_metaux:
+            chance_de_trouver=1.0
+            print("Détecteur de métaux activé!")
+
+        if game.inventaire.possede_patte_lapin:
+            loot_table.extend(["gemme", "cle", "or"]) 
+            print("Patte de lapin activée!")
+        if random.random() < chance_de_trouver:
+            if not loot_table:
+                return "rien"
             #l'objet doit etre instancié
-            nom_objet = random.choice(self.contenu_possibles)
+            nom_objet = random.choice(loot_table)
             return nom_objet
         else:
             return "rien"
