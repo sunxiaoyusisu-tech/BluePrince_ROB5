@@ -307,7 +307,7 @@ class Game:
         #screen.blit(self.player.pion, self.player.rect)
 
         # Dessiner le message d'interaction s'il est actif
-        if self.is_interacting and pygame.time.get_ticks() < self.message_timer:
+        if self.is_interacting :
             self.draw_interaction_prompt(screen)
 
         self.draw_system_messages(screen)
@@ -443,8 +443,8 @@ class Game:
         if not self.is_interacting:
             return
         
-        x,y = 50, screen.get_height() - 100
-        width, height = 400,80
+        x,y = 500, screen.get_height() - 300
+        width, height = 600,80
 
         rect = pygame.Rect(x,y,width,height)
         pygame.draw.rect(screen,self.DARK_BLUE,rect)
