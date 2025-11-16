@@ -677,6 +677,40 @@ class Game:
             self.last_move_dir_str = direction 
             self.start_room_selection(direction)
 
+    def use_dice_for_reroll(self):
+        """
+        Consomme un dé pour tirer 3 nouvelles options de pièce.
+        """
+        if not self.is_selecting_room:
+            self.add_message("Vous ne pouvez utiliser le dé que lors de la sélection de pièce.", (255, 100, 100))
+            return
+        # Check de
+        if self.inventaire.des>0:
+            self.inventaire.modifier_des(-1)
+            self.add_message("Dé utilisé! Nouveau tirage!", (255, 255, 100))
+        # Tirer de nouvelles pieces
+            new_room_names=self.tirer_pieces(
+                    nombre_options=3, 
+                    r_cible=self.target_row    
+            )
+            try:
+                
+                    self.current_room_options = [creer_piece(name) for name in new_room_names]
+            except NameError:
+                
+                    self.current_room_options = new_room_names 
+                    self.add_message("Erreur: Impossible de créer les pièces. Vérifiez 'creer_piece'.", (255, 0, 0))
+
+
+            self.selected_option_index = 0
+            
+            if not self.current_room_options:
+                    self.add_message("Pioche vide. Tirage échoué. Annulation de la sélection.", (255, 100, 100))
+                    self.reset_room_selection()
+        else:
+            self.add_message("Vous n'avez pas de dé!", (255, 100, 100))
+        
+
 
     def start_room_selection(self, door_direction):
         """ Déclenche l'état de sélection de pièce avec les options tirées. """
