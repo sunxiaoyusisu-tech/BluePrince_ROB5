@@ -88,7 +88,12 @@ while running:
                         game.digging()
                     elif isinstance(game.current_interaction_object, Coffre):
                         game.ouvrir_coffre()
-                    #game.digging()
+                    elif isinstance(game.current_interaction_object, Magasin):
+                        obj.selection_item()
+                        if event.key == pygame.K_RETURN:
+                            obj.confirm_purchase()
+                            
+
                 elif event.key == pygame.K_ESCAPE : 
                     game.is_interacting = False
                     game.current_interaction_object = None
