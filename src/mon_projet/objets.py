@@ -89,49 +89,6 @@ class BoussoleMagique(ObjetPermanent):
         print(f"L'objet {self.nom} est un objet passif")
         pass
 
-        # Direction optimale vers l'Antechamber
-        #current_row = game.current_row
-        #current_col = game.current_col
-
-        # Position de l'Antechamber
-        #target_row = 0
-        #target_col = 2
-
-        #direction_optimale = []
-
-        #Direction verticale
-        #if current_row > target_row:
-         #   direction_optimale.append('haut')
-        #elif current_row < target_row :
-         #   direction_optimale.append('bas')
-
-        #Direction horizontale
-        #if current_col > target_col : 
-        #    direction_optimale.append('gauche')
-        #elif current_col < target_col :
-        #    direction_optimale.append('droite')
-        
-        # Analyse des portes adjacentes
-        #current_room = game.manoir_grid[current_row][current_col]
-        #infos_portes = {}
-        
-        #if current_room and current_room.portes:
-         #   directions = ["haut", "bas", "droite", "gauche"]
-          #  for i, direction in enumerate(directions):
-           #     if current_room.portes.positions[i] == 1:
-            #        niveau = current_room.portes.niveaux_verrouillage[i]
-             #       infos_portes[direction] = niveau
-       # return {
-        #    'direction optimale' : direction_optimale,
-         #   'infos_portes' : infos_portes,
-         #   'distance_restante' : abs(current_row - target_row) + abs(current_col - target_col)
-        #}
-    
-    # Ajouter à la classe Inventaire
-    #def ajouter_boussole_magique_inventaire(inventaire):
-     #   """Extension pour l'inventaire - à ajouter dans inventaire.py"""
-      #  inventaire.possede_boussole_magique = False
-
 #Objets Consommables (Nourriture)
 class Pomme(ObjetConsommable):
     def __init__(self):
@@ -333,7 +290,7 @@ class Magasin(ObjetInteractif):
     def selection_item(self, key):
         """ Gère le mouvement dans le menu de sélection de pièce (Flèches UP/DOWN). """
         self.selected_option_index = 0
-        if self.is_selecting_room:
+        if self.is_selecting_item:
             if key == pygame.K_LEFT:
                 self.selected_option_index = (self.selected_option_index - 1) % len(self.catalogue)
             elif key == pygame.K_RIGHT:
@@ -344,7 +301,7 @@ class Magasin(ObjetInteractif):
         Confirme l'achat de l'objet sélectionné si le joueur a assez d'or.
         Retourne True si l'achat est réussi, False sinon.
         """
-        if not self.is_selecting_room:
+        if not self.is_selecting_item:
             return
             
         chosen_item = self.catalogue[self.selected_option_index]
@@ -354,8 +311,8 @@ class Magasin(ObjetInteractif):
             if chosen_item.cout_or > 0:
                 self.inventaire.modifier_or(-chosen_item.prix)
                 self.add_message(f"Dépensé {chosen_item.prix} or", (255, 200, 100))
-                #ajouter l'objet à l'inventaire
-                #retirer l'objet du magasin
+                self.inventaire.ajouter(chosen_item)
+                self.catalogue.remove(chosen_item)
             
 
     def acheter(self, joueur: 'Joueur', nom_objet: str) -> bool:
